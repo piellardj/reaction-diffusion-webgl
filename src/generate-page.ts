@@ -31,6 +31,23 @@ const data = {
             title: "Parameters",
             controls: [
                 {
+                    type: Demopage.supportedControls.Tabs,
+                    title: "Map",
+                    id: "map-tabs-id",
+                    unique: true,
+                    options: [
+                        {
+                            value: "uniform",
+                            label: "Uniform",
+                            checked: true,
+                        },
+                        {
+                            value: "range",
+                            label: "Range",
+                        },
+                    ]
+                },
+                {
                     type: Demopage.supportedControls.Range,
                     title: "A feeding",
                     id: "A-feeding-range-id",

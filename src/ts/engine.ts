@@ -2,7 +2,7 @@ import { gl } from "./gl-utils/gl-canvas";
 import { Shader } from "./gl-utils/shader";
 import * as ShaderManager from "./gl-utils/shader-manager";
 import { VBO } from "./gl-utils/vbo";
-import { EInitialState, Parameters } from "./parameters";
+import { EInitialState, EParametersMap, Parameters } from "./parameters";
 
 import { Texture } from "./texture";
 
@@ -66,6 +66,7 @@ class Engine {
                 gl.bindFramebuffer(gl.FRAMEBUFFER, this.currentTexture.framebuffer);
 
                 this.updateShader.u["uTexture"].value = this.previousTexture.texture;
+                this.updateShader.u["uRangeParameters"].value = Parameters.parametersMap === EParametersMap.RANGE ? 1 : 0;
                 this.updateShader.bindUniforms();
                 gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
             }

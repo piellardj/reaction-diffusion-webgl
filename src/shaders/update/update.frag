@@ -2,6 +2,7 @@ precision mediump float;
 
 uniform sampler2D uTexture;
 uniform vec2 uTexelSize;
+uniform float uRangeParameters;
 
 // x: feedA rate
 // y: killB rate
@@ -29,19 +30,20 @@ vec2 laplacian() {
 }
 
 void main() {
-    vec4 sample = texture2D(uTexture, vSamplingPosition);
-
-    vec2 values = decode(sample);
-
-    float A = values.x;
-    float B = values.y;
+    float feedA = mix(uRates.x, mix(0.01, 0.1, vSamplingPosition.y), uRangeParameters);
+    float killB = mix(uRates.y, mix(0.045, 0.07, vSamplingPosition.x), uRangeParameters);
 
     vec2 laplace = laplacian();
+
+    vec4 sample = texture2D(uTexture, vSamplingPosition);
+    vec2 values = decode(sample);
+    float A = values.x;
+    float B = values.y;
     float reaction = A * B * B;
     const float dt = 1.0;
     values = vec2(
-        values.x + dt * (uRates.z * laplace.x - reaction + uRates.x * (1.0 - A)),
-        values.y + dt * (uRates.w * laplace.y + reaction - (uRates.y + uRates.x) * B)
+        values.x + dt * (uRates.z * laplace.x - reaction + feedA * (1.0 - A)),
+        values.y + dt * (uRates.w * laplace.y + reaction - (killB + feedA) * B)
     );
 
     vec4 encoded = encode(values);

@@ -3,6 +3,7 @@ import "./page-interface-generated";
 
 /* === IDs ============================================================ */
 const controlId = {
+    PARAMETERS_MAP_TABS: "map-tabs-id",
     A_FEEDING_RANGE: "A-feeding-range-id",
     A_DIFFUSION_RANGE: "A-diffusion-range-id",
     B_KILLING_RANGE: "B-killing-range-id",
@@ -23,6 +24,11 @@ function callObservers(observers: Observer[]): void {
     }
 }
 
+enum EParametersMap {
+    UNIFORM = "uniform",
+    RANGE = "range",
+}
+
 enum EInitialState {
     BLANK = "blank",
     DISC = "disc",
@@ -33,18 +39,18 @@ abstract class Parameters {
     public static readonly canvasResizeObservers: Observer[] = [];
     public static readonly resetObservers: Observer[] = [];
 
+    public static get parametersMap(): EParametersMap {
+        return Page.Tabs.getValues(controlId.PARAMETERS_MAP_TABS)[0] as EParametersMap;
+    }
     public static get AFeedingRate(): number {
         return Page.Range.getValue(controlId.A_FEEDING_RANGE);
     }
-
     public static get ADiffusionRate(): number {
         return Page.Range.getValue(controlId.A_DIFFUSION_RANGE);
     }
-
     public static get BKillingRate(): number {
         return Page.Range.getValue(controlId.B_KILLING_RANGE);
     }
-
     public static get BDIffusionRate(): number {
         return Page.Range.getValue(controlId.B_DIFFUSION_RANGE);
     }
@@ -69,7 +75,16 @@ Page.Canvas.Observers.canvasResize.push(callCanvasResizeObservers);
 const callResetObservers = () => { callObservers(Parameters.resetObservers); };
 Page.Button.addObserver(controlId.RESET_BUTTON, callResetObservers);
 
+const updateParametersVisibility = () => {
+    const map = Parameters.parametersMap;
+    Page.Controls.setVisibility(controlId.A_FEEDING_RANGE, map === EParametersMap.UNIFORM);
+    Page.Controls.setVisibility(controlId.B_KILLING_RANGE, map === EParametersMap.UNIFORM);
+};
+Page.Tabs.addObserver(controlId.PARAMETERS_MAP_TABS, updateParametersVisibility);
+updateParametersVisibility();
+
 export {
     EInitialState,
+    EParametersMap,
     Parameters,
 };
