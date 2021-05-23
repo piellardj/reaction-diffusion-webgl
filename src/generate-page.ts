@@ -26,7 +26,49 @@ const data = {
         height: 512,
         enableFullscreen: true,
     },
-    controlsSections: [],
+    controlsSections: [
+        {
+            title: "Simulation",
+            controls: [
+                {
+                    type: Demopage.supportedControls.Range,
+                    title: "A feeding",
+                    id: "A-feeding-range-id",
+                    min: 0,
+                    max: 0.1,
+                    value: 0.054,
+                    step: 0.001
+                },
+                {
+                    type: Demopage.supportedControls.Range,
+                    title: "A diffusion",
+                    id: "A-diffusion-range-id",
+                    min: 0,
+                    max: 0.5,
+                    value: 0.2097,
+                    step: 0.001
+                },
+                {
+                    type: Demopage.supportedControls.Range,
+                    title: "B killing",
+                    id: "B-killing-range-id",
+                    min: 0,
+                    max: 0.1,
+                    value: 0.0620,
+                    step: 0.001
+                },
+                {
+                    type: Demopage.supportedControls.Range,
+                    title: "B diffusion",
+                    id: "B-diffusion-range-id",
+                    min: 0,
+                    max: 0.5,
+                    value: 0.1050,
+                    step: 0.001
+                },
+            ]
+        },
+    ]
 };
 
 const SRC_DIR = path.resolve(__dirname);

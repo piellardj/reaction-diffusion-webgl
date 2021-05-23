@@ -1,6 +1,5 @@
 import * as GLCanvas from "./gl-utils/gl-canvas";
 import { gl } from "./gl-utils/gl-canvas";
-import { Viewport } from "./gl-utils/viewport";
 
 import * as FPSIndicator from "./fps-indicator";
 import { Parameters } from "./parameters";
@@ -20,6 +19,8 @@ function main(): void {
     if (!GLCanvas.initGL(webglFlags)) {
         return;
     }
+    gl.disable(gl.CULL_FACE);
+    gl.disable(gl.BLEND);
 
     let needToAdjustCanvasSize = true;
     Parameters.canvasResizeObservers.push(() => { needToAdjustCanvasSize = true; });
@@ -31,7 +32,9 @@ function main(): void {
 
         if (needToAdjustCanvasSize) {
             GLCanvas.adjustSize(false);
-            Viewport.setFullCanvas(gl);
+            const canvasSize = Page.Canvas.getSize();
+            gl.viewport(0, 0, canvasSize[0], canvasSize[1]);
+            engine.initialize(canvasSize[0], canvasSize[1]);
             needToAdjustCanvasSize = false;
         }
 
