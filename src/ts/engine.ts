@@ -54,7 +54,7 @@ class Engine {
                 Parameters.BDIffusionRate,
             ];
 
-            for (let i = 0; i < 1; i++) {
+            for (let i = Parameters.speed; i > 0; i--) {
                 this.swapTextures();
 
                 gl.bindFramebuffer(gl.FRAMEBUFFER, this.currentTexture.framebuffer);

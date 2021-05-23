@@ -7,6 +7,8 @@ const controlId = {
     A_DIFFUSION_RANGE: "A-diffusion-range-id",
     B_KILLING_RANGE: "B-killing-range-id",
     B_DIFFUSION_RANGE: "B-diffusion-range-id",
+
+    SPEED_RANGE: "speed-range-id",
 };
 
 type Observer = () => unknown;
@@ -34,6 +36,10 @@ abstract class Parameters {
 
     public static get BDIffusionRate(): number {
         return Page.Range.getValue(controlId.B_DIFFUSION_RANGE);
+    }
+
+    public static get speed(): number {
+        return Page.Range.getValue(controlId.SPEED_RANGE);
     }
 }
 

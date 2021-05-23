@@ -28,7 +28,7 @@ const data = {
     },
     controlsSections: [
         {
-            title: "Simulation",
+            title: "Parameters",
             controls: [
                 {
                     type: Demopage.supportedControls.Range,
@@ -65,6 +65,20 @@ const data = {
                     max: 0.5,
                     value: 0.1050,
                     step: 0.001
+                },
+            ]
+        },
+        {
+            title: "Simulation",
+            controls: [
+                {
+                    type: Demopage.supportedControls.Range,
+                    title: "Speed",
+                    id: "speed-range-id",
+                    min: 1,
+                    max: 100,
+                    value: 10,
+                    step: 1
                 },
             ]
         },
