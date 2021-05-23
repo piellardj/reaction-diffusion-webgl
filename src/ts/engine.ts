@@ -10,8 +10,10 @@ class Engine {
     private displayShader: Shader;
     private updateShader: Shader;
     private resetShader: Shader;
+    private brushApplyShader: Shader;
+    private brushDisplayShader: Shader;
 
-    private readonly fullscreenVBO: VBO;
+    private readonly squareVBO: VBO;
 
     private previousTexture: Texture;
     private currentTexture: Texture;
@@ -19,16 +21,18 @@ class Engine {
     private initialized: boolean;
 
     public constructor() {
-        this.fullscreenVBO = VBO.createQuad(gl, -1, -1, +1, +1);
+        this.squareVBO = VBO.createQuad(gl, -1, -1, +1, +1);
 
         this.previousTexture = new Texture();
         this.currentTexture = new Texture();
 
         this.initialized = false;
 
-        this.asyncLoadShader("display", "display/display.frag", (shader: Shader) => { this.displayShader = shader; });
-        this.asyncLoadShader("update", "update/update.frag", (shader: Shader) => { this.updateShader = shader; });
-        this.asyncLoadShader("reset", "update/reset.frag", (shader: Shader) => { this.resetShader = shader; });
+        this.asyncLoadShader("display", "fullscreen.vert", "display/display.frag", (shader: Shader) => { this.displayShader = shader; });
+        this.asyncLoadShader("update", "fullscreen.vert", "update/update.frag", (shader: Shader) => { this.updateShader = shader; });
+        this.asyncLoadShader("reset", "fullscreen.vert", "update/reset.frag", (shader: Shader) => { this.resetShader = shader; });
+        this.asyncLoadShader("brush-apply", "update/brush.vert", "update/brush-apply.frag", (shader: Shader) => { this.brushApplyShader = shader; });
+        this.asyncLoadShader("brush-display", "update/brush.vert", "update/brush-display.frag", (shader: Shader) => { this.brushDisplayShader = shader; });
     }
 
     public initialize(width: number, height: number): void {
@@ -41,6 +45,8 @@ class Engine {
         if (!this.initialized) {
             this.initialized = this.reset();
         }
+
+        this.handleBrush();
 
         if (this.initialized && this.updateShader) {
             this.updateShader.use();
@@ -67,11 +73,21 @@ class Engine {
     }
 
     public reset(): boolean {
-        if (this.resetShader) {
+        if (this.resetShader && this.brushApplyShader) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, this.currentTexture.framebuffer);
             this.resetShader.use();
             this.resetShader.bindUniformsAndAttributes();
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+            this.brushApplyShader.use();
+            this.brushApplyShader.bindAttributes();
+            for (let i = 0; i < 80; i++) {
+                this.brushApplyShader.u["uPosition"].value = [Math.random(), Math.random()];
+                this.brushApplyShader.u["uSize"].value = [0.2 * Math.random(), 0.2 * Math.random()];
+                this.brushApplyShader.bindUniforms();
+                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+            }
+
             return true;
         }
         return false;
@@ -89,23 +105,57 @@ class Engine {
         }
     }
 
+    public displayBrush(): void {
+        if (this.brushDisplayShader) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            this.brushDisplayShader.use();
+            this.brushDisplayShader.bindUniformsAndAttributes();
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        }
+    }
+
+    private handleBrush(): void {
+        const mousePosition = Page.Canvas.getMousePosition();
+        if (mousePosition[0] >= 0 && mousePosition[0] <= 1 && mousePosition[1] >= 0 && mousePosition[1] <= 1) {
+            const size = Parameters.brushSize;
+            const position = [mousePosition[0], 1 - mousePosition[1]];
+            const brushSize = [size / this.currentTexture.width, size / this.currentTexture.height];
+
+            if (this.brushApplyShader) {
+                this.brushApplyShader.u["uPosition"].value = position;
+                this.brushApplyShader.u["uSize"].value = brushSize;
+            }
+            if (this.brushDisplayShader) {
+                this.brushDisplayShader.u["uPosition"].value = position;
+                this.brushDisplayShader.u["uSize"].value = brushSize;
+            }
+
+            if (this.brushApplyShader && Page.Canvas.isMouseDown()) {
+                gl.bindFramebuffer(gl.FRAMEBUFFER, this.currentTexture.framebuffer);
+                this.brushApplyShader.use();
+                this.brushApplyShader.bindUniformsAndAttributes();
+                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+            }
+        }
+    }
+
     private swapTextures(): void {
         const tmp = this.currentTexture;
         this.currentTexture = this.previousTexture;
         this.previousTexture = tmp;
     }
 
-    private asyncLoadShader(name: string, fragmentFilename: string, callback: (shader: Shader) => unknown): void {
+    private asyncLoadShader(name: string, vertexFilename: string, fragmentFilename: string, callback: (shader: Shader) => unknown): void {
         ShaderManager.buildShader({
             fragmentFilename,
-            vertexFilename: "fullscreen.vert",
+            vertexFilename,
             injected: {},
         }, (builtShader: Shader | null) => {
             if (builtShader !== null) {
-                builtShader.a["aCorner"].VBO = this.fullscreenVBO;
+                builtShader.a["aCorner"].VBO = this.squareVBO;
                 callback(builtShader);
             } else {
-                Page.Demopage.setErrorMessage(`${name}-shader-error`, `Faild to build '${name}' shader.`);
+                Page.Demopage.setErrorMessage(`${name}-shader-error`, `Failed to build '${name}' shader.`);
             }
         });
     }

@@ -41,6 +41,10 @@ function main(): void {
         engine.update();
         engine.drawToCanvas();
 
+        if (Parameters.displayBrush) {
+            engine.displayBrush();
+        }
+
         requestAnimationFrame(mainLoop);
     }
     mainLoop();

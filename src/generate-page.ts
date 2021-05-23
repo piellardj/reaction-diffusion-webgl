@@ -80,6 +80,21 @@ const data = {
                     value: 10,
                     step: 1
                 },
+                {
+                    type: Demopage.supportedControls.Range,
+                    title: "Brush size",
+                    id: "brush-size-range-id",
+                    min: 20,
+                    max: 100,
+                    value: 30,
+                    step: 1
+                },
+                {
+                    type: Demopage.supportedControls.Checkbox,
+                    title: "Display brush",
+                    id: "brush-display-checkbox-id",
+                    checked: false,
+                },
             ]
         },
     ]
