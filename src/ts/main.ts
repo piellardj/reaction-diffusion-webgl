@@ -25,6 +25,9 @@ function main(): void {
     let needToAdjustCanvasSize = true;
     Parameters.canvasResizeObservers.push(() => { needToAdjustCanvasSize = true; });
 
+    let needToReset = true;
+    Parameters.resetObservers.push(() => { needToReset = true; });
+
     const engine = new Engine();
 
     function mainLoop(): void {
@@ -36,6 +39,12 @@ function main(): void {
             gl.viewport(0, 0, canvasSize[0], canvasSize[1]);
             engine.initialize(canvasSize[0], canvasSize[1]);
             needToAdjustCanvasSize = false;
+        }
+
+        if (needToReset) {
+            const canvasSize = Page.Canvas.getSize();
+            engine.initialize(canvasSize[0], canvasSize[1]);
+            needToReset = false;
         }
 
         engine.update();

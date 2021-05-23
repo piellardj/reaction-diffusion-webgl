@@ -2,7 +2,7 @@ import { gl } from "./gl-utils/gl-canvas";
 import { Shader } from "./gl-utils/shader";
 import * as ShaderManager from "./gl-utils/shader-manager";
 import { VBO } from "./gl-utils/vbo";
-import { Parameters } from "./parameters";
+import { EInitialState, Parameters } from "./parameters";
 
 import { Texture } from "./texture";
 
@@ -73,21 +73,15 @@ class Engine {
     }
 
     public reset(): boolean {
-        if (this.resetShader && this.brushApplyShader) {
+        if (this.resetShader) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, this.currentTexture.framebuffer);
+
+            const pattern = Parameters.initialState;
+            this.resetShader.u["uPattern"].value = [pattern === EInitialState.BLANK, pattern === EInitialState.DISC, pattern === EInitialState.CIRCLE, 0];
+
             this.resetShader.use();
             this.resetShader.bindUniformsAndAttributes();
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-            this.brushApplyShader.use();
-            this.brushApplyShader.bindAttributes();
-            for (let i = 0; i < 80; i++) {
-                this.brushApplyShader.u["uPosition"].value = [Math.random(), Math.random()];
-                this.brushApplyShader.u["uSize"].value = [0.2 * Math.random(), 0.2 * Math.random()];
-                this.brushApplyShader.bindUniforms();
-                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-            }
-
             return true;
         }
         return false;

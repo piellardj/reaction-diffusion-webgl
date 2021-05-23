@@ -11,6 +11,8 @@ const controlId = {
     SPEED_RANGE: "speed-range-id",
     BRUSH_SIZE_RANGE: "brush-size-range-id",
     BRUSH_DISPLAY_CHECKBOX: "brush-display-checkbox-id",
+    INITIAL_STATE_TABS: "initial-state-tabs-id",
+    RESET_BUTTON: "reset-button-id",
 };
 
 type Observer = () => unknown;
@@ -21,8 +23,15 @@ function callObservers(observers: Observer[]): void {
     }
 }
 
+enum EInitialState {
+    BLANK = "blank",
+    DISC = "disc",
+    CIRCLE = "circle",
+}
+
 abstract class Parameters {
     public static readonly canvasResizeObservers: Observer[] = [];
+    public static readonly resetObservers: Observer[] = [];
 
     public static get AFeedingRate(): number {
         return Page.Range.getValue(controlId.A_FEEDING_RANGE);
@@ -49,11 +58,18 @@ abstract class Parameters {
     public static get displayBrush(): boolean {
         return Page.Checkbox.isChecked(controlId.BRUSH_DISPLAY_CHECKBOX);
     }
+    public static get initialState(): EInitialState {
+        return Page.Tabs.getValues(controlId.INITIAL_STATE_TABS)[0] as EInitialState;
+    }
 }
 
 const callCanvasResizeObservers = () => { callObservers(Parameters.canvasResizeObservers); };
 Page.Canvas.Observers.canvasResize.push(callCanvasResizeObservers);
 
+const callResetObservers = () => { callObservers(Parameters.resetObservers); };
+Page.Button.addObserver(controlId.RESET_BUTTON, callResetObservers);
+
 export {
+    EInitialState,
     Parameters,
 };

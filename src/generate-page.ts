@@ -95,6 +95,32 @@ const data = {
                     id: "brush-display-checkbox-id",
                     checked: false,
                 },
+                {
+                    type: Demopage.supportedControls.Tabs,
+                    title: "Initial state",
+                    id: "initial-state-tabs-id",
+                    unique: true,
+                    options: [
+                        {
+                            value: "blank",
+                            label: "Blank",
+                        },
+                        {
+                            value: "disc",
+                            label: "Disc",
+                        },
+                        {
+                            value: "circle",
+                            label: "Circle",
+                            checked: true,
+                        },
+                    ]
+                },
+                {
+                    type: Demopage.supportedControls.Button,
+                    id: "reset-button-id",
+                    label: "Reset"
+                }
             ]
         },
     ]
