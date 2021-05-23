@@ -75,7 +75,7 @@ const data = {
                     type: Demopage.supportedControls.Range,
                     title: "Speed",
                     id: "speed-range-id",
-                    min: 1,
+                    min: 0,
                     max: 100,
                     value: 10,
                     step: 1
