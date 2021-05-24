@@ -7,6 +7,11 @@ import { EInitialState, EParametersMap, Parameters } from "./parameters";
 import { Texture } from "./texture";
 
 class Engine {
+    public static readonly A_FEEDING_MIN: number = 0.01;
+    public static readonly A_FEEDING_MAX: number = 0.1;
+    public static readonly B_KILLING_MIN: number = 0.045;
+    public static readonly B_KILLING_MAX: number = 0.07;
+
     private displayShader: Shader;
     private updateShader: Shader;
     private resetShader: Shader;
@@ -29,7 +34,13 @@ class Engine {
         this.initialized = false;
 
         this.asyncLoadShader("display", "fullscreen.vert", "display/display.frag", (shader: Shader) => { this.displayShader = shader; });
-        this.asyncLoadShader("update", "fullscreen.vert", "update/update.frag", (shader: Shader) => { this.updateShader = shader; });
+        this.asyncLoadShader("update", "fullscreen.vert", "update/update.frag", (shader: Shader) => { this.updateShader = shader; },
+        {
+            A_FEEDING_MIN: Engine.A_FEEDING_MIN.toFixed(5),
+            A_FEEDING_MAX: Engine.A_FEEDING_MAX.toFixed(5),
+            B_KILLING_MIN: Engine.B_KILLING_MIN.toFixed(5),
+            B_KILLING_MAX: Engine.B_KILLING_MAX.toFixed(5),
+        });
         this.asyncLoadShader("reset", "fullscreen.vert", "update/reset.frag", (shader: Shader) => { this.resetShader = shader; });
         this.asyncLoadShader("brush-apply", "update/brush.vert", "update/brush-apply.frag", (shader: Shader) => { this.brushApplyShader = shader; });
         this.asyncLoadShader("brush-display", "update/brush.vert", "update/brush-display.frag", (shader: Shader) => { this.brushDisplayShader = shader; });
@@ -140,11 +151,11 @@ class Engine {
         this.previousTexture = tmp;
     }
 
-    private asyncLoadShader(name: string, vertexFilename: string, fragmentFilename: string, callback: (shader: Shader) => unknown): void {
+    private asyncLoadShader(name: string, vertexFilename: string, fragmentFilename: string, callback: (shader: Shader) => unknown, injected: any = {}): void {
         ShaderManager.buildShader({
             fragmentFilename,
             vertexFilename,
-            injected: {},
+            injected,
         }, (builtShader: Shader | null) => {
             if (builtShader !== null) {
                 builtShader.a["aCorner"].VBO = this.squareVBO;

@@ -6,6 +6,7 @@ import { Parameters } from "./parameters";
 
 import "./page-interface-generated";
 import { Engine } from "./engine";
+import { Visor } from "./visor";
 
 
 function main(): void {
@@ -29,6 +30,7 @@ function main(): void {
     Parameters.resetObservers.push(() => { needToReset = true; });
 
     const engine = new Engine();
+    const visor = new Visor();
 
     function mainLoop(): void {
         FPSIndicator.registerFrame();
@@ -49,6 +51,8 @@ function main(): void {
 
         engine.update();
         engine.drawToCanvas();
+
+        visor.update();
 
         if (Parameters.displayBrush) {
             engine.displayBrush();

@@ -30,8 +30,8 @@ vec2 laplacian() {
 }
 
 void main() {
-    float feedA = mix(uRates.x, mix(0.01, 0.1, vSamplingPosition.y), uRangeParameters);
-    float killB = mix(uRates.y, mix(0.045, 0.07, vSamplingPosition.x), uRangeParameters);
+    float feedA = mix(uRates.x, mix(#INJECT(A_FEEDING_MIN), #INJECT(A_FEEDING_MAX), vSamplingPosition.y), uRangeParameters);
+    float killB = mix(uRates.y, mix(#INJECT(B_KILLING_MIN), #INJECT(B_KILLING_MAX), vSamplingPosition.x), uRangeParameters);
 
     vec2 laplace = laplacian();
 
