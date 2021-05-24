@@ -4,6 +4,7 @@ import "./page-interface-generated";
 /* === IDs ============================================================ */
 const controlId = {
     PARAMETERS_MAP_TABS: "map-tabs-id",
+    INPUT_IMAGE_UPLOAD: "input-image-upload-button",
     A_FEEDING_RANGE: "A-feeding-range-id",
     A_DIFFUSION_RANGE: "A-diffusion-range-id",
     B_KILLING_RANGE: "B-killing-range-id",
@@ -19,6 +20,7 @@ const controlId = {
 };
 
 type Observer = () => unknown;
+type ImageUploadObserver = (image: HTMLImageElement) => unknown;
 
 function callObservers(observers: Observer[]): void {
     for (const observer of observers) {
@@ -29,6 +31,7 @@ function callObservers(observers: Observer[]): void {
 enum EParametersMap {
     UNIFORM = "uniform",
     RANGE = "range",
+    IMAGE = "image",
 }
 
 enum EInitialState {
@@ -38,6 +41,7 @@ enum EInitialState {
 }
 
 abstract class Parameters {
+    public static readonly imageUploadObservers: ImageUploadObserver[] = [];
     public static readonly canvasResizeObservers: Observer[] = [];
     public static readonly resetObservers: Observer[] = [];
 
@@ -81,6 +85,9 @@ const updateParametersVisibility = () => {
     const map = Parameters.parametersMap;
     Page.Controls.setVisibility(controlId.A_FEEDING_RANGE, map === EParametersMap.UNIFORM);
     Page.Controls.setVisibility(controlId.B_KILLING_RANGE, map === EParametersMap.UNIFORM);
+    Page.Controls.setVisibility(controlId.A_DIFFUSION_RANGE, map !== EParametersMap.IMAGE);
+    Page.Controls.setVisibility(controlId.B_DIFFUSION_RANGE, map !== EParametersMap.IMAGE);
+    Page.Controls.setVisibility(controlId.INPUT_IMAGE_UPLOAD, map === EParametersMap.IMAGE);
 };
 Page.Tabs.addObserver(controlId.PARAMETERS_MAP_TABS, updateParametersVisibility);
 updateParametersVisibility();
@@ -90,6 +97,22 @@ const updateIndicatorsVisibility = () => {
 };
 Page.Checkbox.addObserver(controlId.INDICATORS_CHECKBOX, updateIndicatorsVisibility);
 updateIndicatorsVisibility();
+
+Page.FileControl.addUploadObserver(controlId.INPUT_IMAGE_UPLOAD, (filesList: FileList) => {
+    if (filesList.length === 1) {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const image = new Image();
+            image.addEventListener("load", () => {
+                for (const observer of Parameters.imageUploadObservers) {
+                    observer(image);
+                }
+            });
+            image.src = reader.result as string;
+        };
+        reader.readAsDataURL(filesList[0]);
+    }
+});
 
 export {
     EInitialState,

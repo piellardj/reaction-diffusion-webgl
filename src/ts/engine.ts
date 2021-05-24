@@ -3,7 +3,7 @@ import { Shader } from "./gl-utils/shader";
 import * as ShaderManager from "./gl-utils/shader-manager";
 import { VBO } from "./gl-utils/vbo";
 import { EInitialState, EParametersMap, Parameters } from "./parameters";
-
+import * as InputImage from "./input-image";
 import { Texture } from "./texture";
 
 class Engine {
@@ -13,7 +13,9 @@ class Engine {
     public static readonly B_KILLING_MAX: number = 0.07;
 
     private displayShader: Shader;
-    private updateShader: Shader;
+    private updateUniformShader: Shader;
+    private updateMapShader: Shader;
+    private updateImageMapShader: Shader;
     private resetShader: Shader;
     private brushApplyShader: Shader;
     private brushDisplayShader: Shader;
@@ -38,13 +40,15 @@ class Engine {
         this.iteration = 0;
 
         this.asyncLoadShader("display", "fullscreen.vert", "display/display.frag", (shader: Shader) => { this.displayShader = shader; });
-        this.asyncLoadShader("update", "fullscreen.vert", "update/update.frag", (shader: Shader) => { this.updateShader = shader; },
+        this.asyncLoadShader("update", "fullscreen.vert", "update/update-uniform.frag", (shader: Shader) => { this.updateUniformShader = shader; });
+        this.asyncLoadShader("update", "fullscreen.vert", "update/update-map.frag", (shader: Shader) => { this.updateMapShader = shader; },
             {
                 A_FEEDING_MIN: Engine.A_FEEDING_MIN.toFixed(5),
                 A_FEEDING_MAX: Engine.A_FEEDING_MAX.toFixed(5),
                 B_KILLING_MIN: Engine.B_KILLING_MIN.toFixed(5),
                 B_KILLING_MAX: Engine.B_KILLING_MAX.toFixed(5),
             });
+        this.asyncLoadShader("update", "fullscreen.vert", "update/update-map-image.frag", (shader: Shader) => { this.updateImageMapShader = shader; });
         this.asyncLoadShader("reset", "fullscreen.vert", "update/reset.frag", (shader: Shader) => { this.resetShader = shader; });
         this.asyncLoadShader("brush-apply", "update/brush.vert", "update/brush-apply.frag", (shader: Shader) => { this.brushApplyShader = shader; });
         this.asyncLoadShader("brush-display", "update/brush.vert", "update/brush-display.frag", (shader: Shader) => { this.brushDisplayShader = shader; });
@@ -64,30 +68,56 @@ class Engine {
 
         this.handleBrush();
 
-        if (this.initialized && this.updateShader) {
-            this.updateShader.use();
-            this.updateShader.bindAttributes();
+        if (this.initialized) {
+            let updateShader: Shader;
+            const map = Parameters.parametersMap;
+            if (map === EParametersMap.UNIFORM && this.updateUniformShader) {
+                this.updateUniformShader.u["uRates"].value = [
+                    Parameters.AFeedingRate,
+                    Parameters.BKillingRate,
+                    Parameters.ADiffusionRate,
+                    Parameters.BDIffusionRate,
+                ];
+                updateShader = this.updateUniformShader;
+            } else if (map === EParametersMap.RANGE && this.updateMapShader) {
+                this.updateMapShader.u["uRates"].value = [
+                    Parameters.ADiffusionRate,
+                    Parameters.BDIffusionRate,
+                ];
+                updateShader = this.updateMapShader;
+            } else if (this.updateImageMapShader) {
+                const inputImageTexture = InputImage.getTexture();
+                this.updateImageMapShader.u["uImageMapTexture"].value = inputImageTexture.id;
 
-            this.updateShader.u["uTexelSize"].value = [1 / this.previousTexture.width, 1 / this.previousTexture.height];
-            this.updateShader.u["uRates"].value = [
-                Parameters.AFeedingRate,
-                Parameters.BKillingRate,
-                Parameters.ADiffusionRate,
-                Parameters.BDIffusionRate,
-            ];
+                const canvasAspectRatio = Page.Canvas.getAspectRatio();
+                const imageAspectRatio = inputImageTexture.width / inputImageTexture.height;
+                if (canvasAspectRatio > imageAspectRatio) {
+                    this.updateImageMapShader.u["uImageMapScaling"].value = [canvasAspectRatio / imageAspectRatio, 1];
+                } else {
+                    this.updateImageMapShader.u["uImageMapScaling"].value = [1, imageAspectRatio / canvasAspectRatio];
+                }
 
-            const nbIterations = Parameters.speed;
-            for (let i = nbIterations; i > 0; i--) {
-                this.swapTextures();
-
-                gl.bindFramebuffer(gl.FRAMEBUFFER, this.currentTexture.framebuffer);
-
-                this.updateShader.u["uTexture"].value = this.previousTexture.texture;
-                this.updateShader.u["uRangeParameters"].value = Parameters.parametersMap === EParametersMap.RANGE ? 1 : 0;
-                this.updateShader.bindUniforms();
-                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+                updateShader = this.updateImageMapShader;
             }
-            this.iteration = this._iteration + nbIterations;
+
+            if (updateShader) {
+                updateShader.use();
+                updateShader.bindAttributes();
+
+                updateShader.u["uTexelSize"].value = [1 / this.previousTexture.width, 1 / this.previousTexture.height];
+
+                const nbIterations = Parameters.speed;
+                for (let i = nbIterations; i > 0; i--) {
+                    this.swapTextures();
+
+                    gl.bindFramebuffer(gl.FRAMEBUFFER, this.currentTexture.framebuffer);
+
+                    updateShader.u["uPreviousIteration"].value = this.previousTexture.texture;
+                    updateShader.bindUniforms();
+                    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+                }
+                this.iteration = this._iteration + nbIterations;
+            }
         }
     }
 

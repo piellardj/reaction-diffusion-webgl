@@ -51,7 +51,17 @@ const data = {
                             value: "range",
                             label: "Range",
                         },
+                        {
+                            value: "image",
+                            label: "Image",
+                        },
                     ]
+                },
+                {
+                    type: Demopage.supportedControls.FileUpload,
+                    id: "input-image-upload-button",
+                    accept: [".png", ".jpg", ".bmp", ".webp"],
+                    defaultMessage: "Upload an image"
                 },
                 {
                     type: Demopage.supportedControls.Range,
