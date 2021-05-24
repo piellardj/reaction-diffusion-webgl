@@ -35,12 +35,12 @@ class Engine {
 
         this.asyncLoadShader("display", "fullscreen.vert", "display/display.frag", (shader: Shader) => { this.displayShader = shader; });
         this.asyncLoadShader("update", "fullscreen.vert", "update/update.frag", (shader: Shader) => { this.updateShader = shader; },
-        {
-            A_FEEDING_MIN: Engine.A_FEEDING_MIN.toFixed(5),
-            A_FEEDING_MAX: Engine.A_FEEDING_MAX.toFixed(5),
-            B_KILLING_MIN: Engine.B_KILLING_MIN.toFixed(5),
-            B_KILLING_MAX: Engine.B_KILLING_MAX.toFixed(5),
-        });
+            {
+                A_FEEDING_MIN: Engine.A_FEEDING_MIN.toFixed(5),
+                A_FEEDING_MAX: Engine.A_FEEDING_MAX.toFixed(5),
+                B_KILLING_MIN: Engine.B_KILLING_MIN.toFixed(5),
+                B_KILLING_MAX: Engine.B_KILLING_MAX.toFixed(5),
+            });
         this.asyncLoadShader("reset", "fullscreen.vert", "update/reset.frag", (shader: Shader) => { this.resetShader = shader; });
         this.asyncLoadShader("brush-apply", "update/brush.vert", "update/brush-apply.frag", (shader: Shader) => { this.brushApplyShader = shader; });
         this.asyncLoadShader("brush-display", "update/brush.vert", "update/brush-display.frag", (shader: Shader) => { this.brushDisplayShader = shader; });
