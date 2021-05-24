@@ -58,6 +58,15 @@ const data = {
                     ]
                 },
                 {
+                    type: Demopage.supportedControls.Range,
+                    title: "Patterns scale",
+                    id: "pattern-scale-range-id",
+                    min: 1,
+                    max: 3,
+                    value: 1,
+                    step: 0.05
+                },
+                {
                     type: Demopage.supportedControls.FileUpload,
                     id: "input-image-upload-button",
                     accept: [".png", ".jpg", ".bmp", ".webp"],

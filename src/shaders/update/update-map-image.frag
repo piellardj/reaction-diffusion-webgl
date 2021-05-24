@@ -2,6 +2,7 @@
 
 uniform sampler2D uImageMapTexture;
 uniform vec2 uImageMapScaling;
+uniform float uDiffuseScaling;
 
 void main() {
     vec2 scaledSamplingPosition = 0.5 + (vSamplingPosition - 0.5) * uImageMapScaling;
@@ -16,5 +17,5 @@ void main() {
     float diffuseA = 0.210;
     float diffuseB = 0.105;
 
-    gl_FragColor = computeNewValue(feedA, killB, diffuseA, diffuseB);
+    gl_FragColor = computeNewValue(feedA, killB, uDiffuseScaling * diffuseA, uDiffuseScaling * diffuseB);
 }

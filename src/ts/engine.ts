@@ -97,6 +97,7 @@ class Engine {
                     this.updateImageMapShader.u["uImageMapScaling"].value = [1, imageAspectRatio / canvasAspectRatio];
                 }
 
+                this.updateImageMapShader.u["uDiffuseScaling"].value = Parameters.patternsScale;
                 updateShader = this.updateImageMapShader;
             }
 

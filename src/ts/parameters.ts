@@ -5,6 +5,7 @@ import "./page-interface-generated";
 const controlId = {
     PARAMETERS_MAP_TABS: "map-tabs-id",
     INPUT_IMAGE_UPLOAD: "input-image-upload-button",
+    PATTERNS_SCALE: "pattern-scale-range-id",
     A_FEEDING_RANGE: "A-feeding-range-id",
     A_DIFFUSION_RANGE: "A-diffusion-range-id",
     B_KILLING_RANGE: "B-killing-range-id",
@@ -48,6 +49,9 @@ abstract class Parameters {
     public static get parametersMap(): EParametersMap {
         return Page.Tabs.getValues(controlId.PARAMETERS_MAP_TABS)[0] as EParametersMap;
     }
+    public static get patternsScale(): number {
+        return Page.Range.getValue(controlId.PATTERNS_SCALE);
+    }
     public static get AFeedingRate(): number {
         return Page.Range.getValue(controlId.A_FEEDING_RANGE);
     }
@@ -85,6 +89,7 @@ const updateParametersVisibility = () => {
     const map = Parameters.parametersMap;
     Page.Controls.setVisibility(controlId.A_FEEDING_RANGE, map === EParametersMap.UNIFORM);
     Page.Controls.setVisibility(controlId.B_KILLING_RANGE, map === EParametersMap.UNIFORM);
+    Page.Controls.setVisibility(controlId.PATTERNS_SCALE, map === EParametersMap.IMAGE);
     Page.Controls.setVisibility(controlId.A_DIFFUSION_RANGE, map !== EParametersMap.IMAGE);
     Page.Controls.setVisibility(controlId.B_DIFFUSION_RANGE, map !== EParametersMap.IMAGE);
     Page.Controls.setVisibility(controlId.INPUT_IMAGE_UPLOAD, map === EParametersMap.IMAGE);
