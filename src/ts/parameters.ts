@@ -14,6 +14,8 @@ const controlId = {
     BRUSH_DISPLAY_CHECKBOX: "brush-display-checkbox-id",
     INITIAL_STATE_TABS: "initial-state-tabs-id",
     RESET_BUTTON: "reset-button-id",
+
+    INDICATORS_CHECKBOX: "indicators-checkbox-id",
 };
 
 type Observer = () => unknown;
@@ -82,6 +84,12 @@ const updateParametersVisibility = () => {
 };
 Page.Tabs.addObserver(controlId.PARAMETERS_MAP_TABS, updateParametersVisibility);
 updateParametersVisibility();
+
+const updateIndicatorsVisibility = () => {
+    Page.Canvas.setIndicatorsVisibility(Page.Checkbox.isChecked(controlId.INDICATORS_CHECKBOX));
+};
+Page.Checkbox.addObserver(controlId.INDICATORS_CHECKBOX, updateIndicatorsVisibility);
+updateIndicatorsVisibility();
 
 export {
     EInitialState,

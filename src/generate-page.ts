@@ -143,8 +143,15 @@ const data = {
             ]
         },
         {
-            title: "Simulation",
-            controls: []
+            title: "Display",
+            controls: [
+                {
+                    type: Demopage.supportedControls.Checkbox,
+                    title: "Indicators",
+                    id: "indicators-checkbox-id",
+                    checked: false,
+                },
+            ]
         },
     ]
 };
