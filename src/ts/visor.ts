@@ -20,10 +20,10 @@ class Visor {
     public constructor() {
         const container = Page.Canvas.getCanvasContainer();
 
-        this.horizontalLine = Visor.createBar(EBarDirection.HORIZONTAL, "A feeding rate");
+        this.horizontalLine = Visor.createBar(EBarDirection.HORIZONTAL, "B killing rate");
         container.appendChild(this.horizontalLine.container);
 
-        this.verticalLine = Visor.createBar(EBarDirection.VERTICAL, "B killing rate");
+        this.verticalLine = Visor.createBar(EBarDirection.VERTICAL, "A feeding rate");
         container.appendChild(this.verticalLine.container);
     }
 
@@ -32,8 +32,8 @@ class Visor {
         const isVisible = (Parameters.parametersMap === EParametersMap.RANGE) && Visor.isInRange(0, 1, mousePosition[0]) && Visor.isInRange(0, 1, mousePosition[1]);
 
         if (isVisible) {
-            this.horizontalLine.legendValue.textContent = Visor.toString(Visor.interpolate(Engine.A_FEEDING_MIN, Engine.A_FEEDING_MAX, mousePosition[0]), 5);
-            this.verticalLine.legendValue.textContent = Visor.toString(Visor.interpolate(Engine.B_KILLING_MIN, Engine.B_KILLING_MAX, mousePosition[1]), 5);
+            this.horizontalLine.legendValue.textContent = Visor.toString(Visor.interpolate(Engine.B_KILLING_MIN, Engine.B_KILLING_MAX, mousePosition[0]), 5);
+            this.verticalLine.legendValue.textContent = Visor.toString(Visor.interpolate(Engine.A_FEEDING_MIN, Engine.A_FEEDING_MAX, 1 - mousePosition[1]), 5);
 
             const canvasSize = Page.Canvas.getSize();
             const hPixel = Math.round(mousePosition[0] * canvasSize[0]);
