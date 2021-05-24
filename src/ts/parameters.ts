@@ -113,6 +113,15 @@ Page.FileControl.addUploadObserver(controlId.INPUT_IMAGE_UPLOAD, (filesList: Fil
         reader.readAsDataURL(filesList[0]);
     }
 });
+{
+    const defaultImage = new Image();
+    defaultImage.addEventListener("load", () => {
+        for (const observer of Parameters.imageUploadObservers) {
+            observer(defaultImage);
+        }
+    });
+    defaultImage.src = "./resources/cat.jpg";
+}
 
 export {
     EInitialState,
