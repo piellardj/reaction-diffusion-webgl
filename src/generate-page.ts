@@ -176,6 +176,16 @@ const data = {
                 },
             ]
         },
+        {
+            title: "Output",
+            controls: [
+                {
+                    type: Demopage.supportedControls.FileDownload,
+                    id: "image-download-id",
+                    label: "Download image"
+                }
+            ]
+        }
     ]
 };
 

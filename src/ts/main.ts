@@ -29,6 +29,9 @@ function main(): void {
     let needToReset = true;
     Parameters.resetObservers.push(() => { needToReset = true; });
 
+    let needToDownload = false;
+    Parameters.imageDownloadObservers.push(() => { needToDownload = true; });
+
     const engine = new Engine();
     const visor = new Visor();
 
@@ -54,6 +57,13 @@ function main(): void {
 
         visor.update();
 
+        if (needToDownload) {
+            // download in the loop because preserveDrawingBuffer is false
+            // also, download before drawing the brush
+            download();
+            needToDownload = false;
+        }
+
         if (Parameters.displayBrush) {
             engine.displayBrush();
         }
@@ -61,6 +71,23 @@ function main(): void {
         requestAnimationFrame(mainLoop);
     }
     mainLoop();
+}
+
+function download(): void {
+    const canvas = Page.Canvas.getCanvas();
+    const name = "raction-diffusion.png";
+
+    if ((canvas as any).msToBlob) { // for IE
+        const blob = (canvas as any).msToBlob();
+        window.navigator.msSaveBlob(blob, name);
+    } else {
+        canvas.toBlob((blob: Blob) => {
+            const link = document.createElement("a");
+            link.download = name;
+            link.href = URL.createObjectURL(blob);
+            link.click();
+        });
+    }
 }
 
 main();

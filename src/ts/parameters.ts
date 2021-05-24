@@ -18,6 +18,8 @@ const controlId = {
     RESET_BUTTON: "reset-button-id",
 
     INDICATORS_CHECKBOX: "indicators-checkbox-id",
+
+    IMAGE_DOWNLOAD: "image-download-id",
 };
 
 type Observer = () => unknown;
@@ -43,6 +45,7 @@ enum EInitialState {
 
 abstract class Parameters {
     public static readonly imageUploadObservers: ImageUploadObserver[] = [];
+    public static readonly imageDownloadObservers: Observer[] = [];
     public static readonly canvasResizeObservers: Observer[] = [];
     public static readonly resetObservers: Observer[] = [];
 
@@ -127,6 +130,10 @@ Page.FileControl.addUploadObserver(controlId.INPUT_IMAGE_UPLOAD, (filesList: Fil
     });
     defaultImage.src = "./resources/cat.jpg";
 }
+
+Page.FileControl.addDownloadObserver(controlId.IMAGE_DOWNLOAD, () => {
+    callObservers(Parameters.imageDownloadObservers);
+});
 
 export {
     EInitialState,
