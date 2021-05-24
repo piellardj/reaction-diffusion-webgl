@@ -22,6 +22,10 @@ const data = {
             id: "fps-indicator",
             label: "FPS",
         },
+        {
+            id: "iteration-indicator",
+            label: "Iteration",
+        },
     ],
     canvas: {
         width: 512,

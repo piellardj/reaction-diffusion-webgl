@@ -24,6 +24,8 @@ class Engine {
     private currentTexture: Texture;
 
     private initialized: boolean;
+    private _iteration: number;
+    private lastIterationUpdate: number;
 
     public constructor() {
         this.squareVBO = VBO.createQuad(gl, -1, -1, +1, +1);
@@ -32,6 +34,8 @@ class Engine {
         this.currentTexture = new Texture();
 
         this.initialized = false;
+        this.lastIterationUpdate = performance.now() - 5000;
+        this.iteration = 0;
 
         this.asyncLoadShader("display", "fullscreen.vert", "display/display.frag", (shader: Shader) => { this.displayShader = shader; });
         this.asyncLoadShader("update", "fullscreen.vert", "update/update.frag", (shader: Shader) => { this.updateShader = shader; },
@@ -50,6 +54,7 @@ class Engine {
         this.previousTexture.reserveSpace(width, height);
         this.currentTexture.reserveSpace(width, height);
         this.initialized = false;
+        this.iteration = 0;
     }
 
     public update(): void {
@@ -71,7 +76,8 @@ class Engine {
                 Parameters.BDIffusionRate,
             ];
 
-            for (let i = Parameters.speed; i > 0; i--) {
+            const nbIterations = Parameters.speed;
+            for (let i = nbIterations; i > 0; i--) {
                 this.swapTextures();
 
                 gl.bindFramebuffer(gl.FRAMEBUFFER, this.currentTexture.framebuffer);
@@ -81,6 +87,7 @@ class Engine {
                 this.updateShader.bindUniforms();
                 gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
             }
+            this.iteration = this._iteration + nbIterations;
         }
     }
 
@@ -117,6 +124,16 @@ class Engine {
             this.brushDisplayShader.use();
             this.brushDisplayShader.bindUniformsAndAttributes();
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        }
+    }
+
+    private set iteration(i: number) {
+        this._iteration = i;
+
+        const now = performance.now();
+        if (now - this.lastIterationUpdate > 200) {
+            Page.Canvas.setIndicatorText("iteration-indicator", this._iteration.toString());
+            this.lastIterationUpdate = now;
         }
     }
 
