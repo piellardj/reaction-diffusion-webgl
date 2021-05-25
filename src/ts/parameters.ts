@@ -17,6 +17,7 @@ const controlId = {
     INITIAL_STATE_TABS: "initial-state-tabs-id",
     RESET_BUTTON: "reset-button-id",
 
+    DISPLAY_MODE_TABS: "display-mode-tabs-id",
     INDICATORS_CHECKBOX: "indicators-checkbox-id",
 
     IMAGE_DOWNLOAD: "image-download-id",
@@ -41,6 +42,11 @@ enum EInitialState {
     BLANK = "blank",
     DISC = "disc",
     CIRCLE = "circle",
+}
+
+enum EDisplayMode {
+    MONOCHROME = "monochrome",
+    TRICOLOR = "tricolor",
 }
 
 abstract class Parameters {
@@ -80,6 +86,14 @@ abstract class Parameters {
     public static get initialState(): EInitialState {
         return Page.Tabs.getValues(controlId.INITIAL_STATE_TABS)[0] as EInitialState;
     }
+
+    public static get displayMode(): EDisplayMode {
+        if (Parameters.parametersMap === EParametersMap.IMAGE) {
+            return Page.Tabs.getValues(controlId.DISPLAY_MODE_TABS)[0] as EDisplayMode;
+        } else {
+            return EDisplayMode.MONOCHROME;
+        }
+    }
 }
 
 const callCanvasResizeObservers = () => { callObservers(Parameters.canvasResizeObservers); };
@@ -87,6 +101,7 @@ Page.Canvas.Observers.canvasResize.push(callCanvasResizeObservers);
 
 const callResetObservers = () => { callObservers(Parameters.resetObservers); };
 Page.Button.addObserver(controlId.RESET_BUTTON, callResetObservers);
+Page.Tabs.addObserver(controlId.DISPLAY_MODE_TABS, callResetObservers);
 
 const updateParametersVisibility = () => {
     const map = Parameters.parametersMap;
@@ -96,6 +111,7 @@ const updateParametersVisibility = () => {
     Page.Controls.setVisibility(controlId.A_DIFFUSION_RANGE, map !== EParametersMap.IMAGE);
     Page.Controls.setVisibility(controlId.B_DIFFUSION_RANGE, map !== EParametersMap.IMAGE);
     Page.Controls.setVisibility(controlId.INPUT_IMAGE_UPLOAD, map === EParametersMap.IMAGE);
+    Page.Controls.setVisibility(controlId.DISPLAY_MODE_TABS, map === EParametersMap.IMAGE);
 };
 Page.Tabs.addObserver(controlId.PARAMETERS_MAP_TABS, updateParametersVisibility);
 updateParametersVisibility();
@@ -133,9 +149,11 @@ Page.FileControl.addUploadObserver(controlId.INPUT_IMAGE_UPLOAD, (filesList: Fil
 
 Page.FileControl.addDownloadObserver(controlId.IMAGE_DOWNLOAD, () => {
     callObservers(Parameters.imageDownloadObservers);
+    callResetObservers();
 });
 
 export {
+    EDisplayMode,
     EInitialState,
     EParametersMap,
     Parameters,

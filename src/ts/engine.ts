@@ -2,7 +2,7 @@ import { gl } from "./gl-utils/gl-canvas";
 import { Shader } from "./gl-utils/shader";
 import * as ShaderManager from "./gl-utils/shader-manager";
 import { VBO } from "./gl-utils/vbo";
-import { EInitialState, EParametersMap, Parameters } from "./parameters";
+import { EDisplayMode, EInitialState, EParametersMap, Parameters } from "./parameters";
 import * as InputImage from "./input-image";
 import { RenderToTextureSwapable } from "./render-to-texture-swapable";
 
@@ -12,17 +12,23 @@ class Engine {
     public static readonly B_KILLING_MIN: number = 0.045;
     public static readonly B_KILLING_MAX: number = 0.07;
 
-    private displayShader: Shader;
+    private displayMonochromeShader: Shader;
+    private displayTricolorShader: Shader;
+
     private updateUniformShader: Shader;
     private updateMapShader: Shader;
     private updateImageMapShader: Shader;
+
     private resetShader: Shader;
     private brushApplyShader: Shader;
     private brushDisplayShader: Shader;
 
     private readonly squareVBO: VBO;
 
-    private internalTexture: RenderToTextureSwapable;
+    // first one is used for monochrome or red
+    // second one is used for green
+    // thrid one is used for blue
+    private readonly internalTextures: [RenderToTextureSwapable, RenderToTextureSwapable, RenderToTextureSwapable]; // used for monochrome or red
 
     private initialized: boolean;
     private _iteration: number;
@@ -31,13 +37,18 @@ class Engine {
     public constructor() {
         this.squareVBO = VBO.createQuad(gl, -1, -1, +1, +1);
 
-        this.internalTexture = new RenderToTextureSwapable();
+        this.internalTextures = [
+            new RenderToTextureSwapable(),
+            new RenderToTextureSwapable(),
+            new RenderToTextureSwapable(),
+        ];
 
         this.initialized = false;
         this.lastIterationUpdate = performance.now() - 5000;
         this.iteration = 0;
 
-        this.asyncLoadShader("display", "fullscreen.vert", "display/display.frag", (shader: Shader) => { this.displayShader = shader; });
+        this.asyncLoadShader("display", "fullscreen.vert", "display/display-monochrome.frag", (shader: Shader) => { this.displayMonochromeShader = shader; });
+        this.asyncLoadShader("display", "fullscreen.vert", "display/display-tricolor.frag", (shader: Shader) => { this.displayTricolorShader = shader; });
         this.asyncLoadShader("update", "fullscreen.vert", "update/update-uniform.frag", (shader: Shader) => { this.updateUniformShader = shader; });
         this.asyncLoadShader("update", "fullscreen.vert", "update/update-map.frag", (shader: Shader) => { this.updateMapShader = shader; },
             {
@@ -53,7 +64,9 @@ class Engine {
     }
 
     public initialize(width: number, height: number): void {
-        this.internalTexture.reserveSpace(width, height);
+        for (const texture of this.internalTextures) {
+            texture.reserveSpace(width, height);
+        }
         this.initialized = false;
         this.iteration = 0;
     }
@@ -66,31 +79,13 @@ class Engine {
         this.handleBrush();
 
         if (this.initialized) {
-            let updateShader: Shader;
+            const nbIterations = Parameters.speed;
             const map = Parameters.parametersMap;
-            if (map === EParametersMap.UNIFORM) {
-                if (this.updateUniformShader) {
-                    this.updateUniformShader.u["uRates"].value = [
-                        Parameters.AFeedingRate,
-                        Parameters.BKillingRate,
-                        Parameters.ADiffusionRate,
-                        Parameters.BDIffusionRate,
-                    ];
-                    updateShader = this.updateUniformShader;
-                }
-            } else if (map === EParametersMap.RANGE) {
-                if (this.updateMapShader) {
-                    this.updateMapShader.u["uRates"].value = [
-                        Parameters.ADiffusionRate,
-                        Parameters.BDIffusionRate,
-                    ];
-                    updateShader = this.updateMapShader;
-                }
-            } else if (map === EParametersMap.IMAGE) {
+
+            if (map === EParametersMap.IMAGE) {
                 if (this.updateImageMapShader) {
                     const inputImageTexture = InputImage.getTexture();
                     this.updateImageMapShader.u["uImageMapTexture"].value = inputImageTexture.id;
-                    this.updateImageMapShader.u["uSampledChannel"].value = [0, 0, 0, 1];
 
                     const canvasAspectRatio = Page.Canvas.getAspectRatio();
                     const imageAspectRatio = inputImageTexture.width / inputImageTexture.height;
@@ -101,57 +96,99 @@ class Engine {
                     }
 
                     this.updateImageMapShader.u["uDiffuseScaling"].value = Parameters.patternsScale;
-                    updateShader = this.updateImageMapShader;
+
+                    this.updateImageMapShader.use();
+                    this.updateImageMapShader.bindAttributes();
+                    this.updateImageMapShader.u["uTexelSize"].value = [1 / this.internalTextures[0].width, 1 / this.internalTextures[0].height];
+
+                    if (Parameters.displayMode === EDisplayMode.MONOCHROME) {
+                        this.updateImageMapShader.u["uSampledChannel"].value = [0, 0, 0, 1];
+                        this.updateInternal(this.updateImageMapShader, nbIterations, this.internalTextures[0]);
+                    } else {
+                        const splitNbIterations = Math.ceil(nbIterations / 3);
+                        this.updateImageMapShader.u["uSampledChannel"].value = [1, 0, 0, 0];
+                        this.updateInternal(this.updateImageMapShader, splitNbIterations, this.internalTextures[0]);
+
+                        this.updateImageMapShader.u["uSampledChannel"].value = [0, 1, 0, 0];
+                        this.updateInternal(this.updateImageMapShader, splitNbIterations, this.internalTextures[1]);
+
+                        this.updateImageMapShader.u["uSampledChannel"].value = [0, 0, 1, 0];
+                        this.updateInternal(this.updateImageMapShader, splitNbIterations, this.internalTextures[2]);
+                    }
+                }
+            } else {
+                let updateShader: Shader;
+
+                if (map === EParametersMap.UNIFORM) {
+                    if (this.updateUniformShader) {
+                        this.updateUniformShader.u["uRates"].value = [
+                            Parameters.AFeedingRate,
+                            Parameters.BKillingRate,
+                            Parameters.ADiffusionRate,
+                            Parameters.BDIffusionRate,
+                        ];
+                        updateShader = this.updateUniformShader;
+                    }
+                } else if (map === EParametersMap.RANGE) {
+                    if (this.updateMapShader) {
+                        this.updateMapShader.u["uRates"].value = [
+                            Parameters.ADiffusionRate,
+                            Parameters.BDIffusionRate,
+                        ];
+                        updateShader = this.updateMapShader;
+                    }
                 }
 
-                this.updateImageMapShader.u["uDiffuseScaling"].value = Parameters.patternsScale;
-                updateShader = this.updateImageMapShader;
-            }
-
-            if (updateShader) {
-                updateShader.use();
-                updateShader.bindAttributes();
-
-                updateShader.u["uTexelSize"].value = [1 / this.internalTexture.width, 1 / this.internalTexture.height];
-
-                const nbIterations = Parameters.speed;
-                for (let i = nbIterations; i > 0; i--) {
-                    this.internalTexture.swap();
-
-                    gl.bindFramebuffer(gl.FRAMEBUFFER, this.internalTexture.currentFramebuffer);
-
-                    updateShader.u["uPreviousIteration"].value = this.internalTexture.previous;
-                    updateShader.bindUniforms();
-                    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+                if (updateShader) {
+                    updateShader.use();
+                    updateShader.bindAttributes();
+                    updateShader.u["uTexelSize"].value = [1 / this.internalTextures[0].width, 1 / this.internalTextures[0].height];
+                    this.updateInternal(updateShader, nbIterations, this.internalTextures[0]);
                 }
-                this.iteration = this._iteration + nbIterations;
             }
         }
     }
 
     public reset(): boolean {
         if (this.resetShader) {
-            gl.bindFramebuffer(gl.FRAMEBUFFER, this.internalTexture.currentFramebuffer);
 
             const pattern = Parameters.initialState;
             this.resetShader.u["uPattern"].value = [pattern === EInitialState.BLANK, pattern === EInitialState.DISC, pattern === EInitialState.CIRCLE, 0];
 
             this.resetShader.use();
             this.resetShader.bindUniformsAndAttributes();
-            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+            for (const texture of this.internalTextures) {
+                gl.bindFramebuffer(gl.FRAMEBUFFER, texture.currentFramebuffer);
+                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+            }
             return true;
         }
         return false;
     }
 
     public drawToCanvas(): void {
-        if (this.displayShader) {
+        let shader: Shader;
+
+        const displayMode = Parameters.displayMode;
+        if (displayMode === EDisplayMode.MONOCHROME) {
+            if (this.displayMonochromeShader) {
+                this.displayMonochromeShader.u["uTexture"].value = this.internalTextures[0].current;
+                shader = this.displayMonochromeShader;
+            }
+        } else if (displayMode === EDisplayMode.TRICOLOR) {
+            if (this.displayTricolorShader) {
+                this.displayTricolorShader.u["uTextureRed"].value = this.internalTextures[0].current;
+                this.displayTricolorShader.u["uTextureGreen"].value = this.internalTextures[1].current;
+                this.displayTricolorShader.u["uTextureBlue"].value = this.internalTextures[2].current;
+                shader = this.displayTricolorShader;
+            }
+        }
+
+        if (shader) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-            this.displayShader.u["uTexture"].value = this.internalTexture.current;
-            this.displayShader.use();
-            this.displayShader.bindUniformsAndAttributes();
-
+            shader.use();
+            shader.bindUniformsAndAttributes();
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         }
     }
@@ -163,6 +200,18 @@ class Engine {
             this.brushDisplayShader.bindUniformsAndAttributes();
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         }
+    }
+
+    private updateInternal(shader: Shader, nbIterations: number, texture: RenderToTextureSwapable): void {
+        for (let i = nbIterations; i > 0; i--) {
+            texture.swap();
+
+            gl.bindFramebuffer(gl.FRAMEBUFFER, texture.currentFramebuffer);
+            shader.u["uPreviousIteration"].value = texture.previous;
+            shader.bindUniforms();
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        }
+        this.iteration = this._iteration + nbIterations;
     }
 
     private set iteration(i: number) {
@@ -180,7 +229,7 @@ class Engine {
         if (mousePosition[0] >= 0 && mousePosition[0] <= 1 && mousePosition[1] >= 0 && mousePosition[1] <= 1) {
             const size = Parameters.brushSize;
             const position = [mousePosition[0], 1 - mousePosition[1]];
-            const brushSize = [size / this.internalTexture.width, size / this.internalTexture.height];
+            const brushSize = [size / this.internalTextures[0].width, size / this.internalTextures[1].height];
 
             if (this.brushApplyShader) {
                 this.brushApplyShader.u["uPosition"].value = position;
@@ -192,10 +241,13 @@ class Engine {
             }
 
             if (this.brushApplyShader && Page.Canvas.isMouseDown()) {
-                gl.bindFramebuffer(gl.FRAMEBUFFER, this.internalTexture.currentFramebuffer);
                 this.brushApplyShader.use();
                 this.brushApplyShader.bindUniformsAndAttributes();
-                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+                for (const texture of this.internalTextures) {
+                    gl.bindFramebuffer(gl.FRAMEBUFFER, texture.currentFramebuffer);
+                    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+                }
             }
         }
     }

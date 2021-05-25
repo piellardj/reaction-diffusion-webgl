@@ -10,7 +10,5 @@ void main() {
     vec4 sample = texture2D(uTexture, vSamplingPosition);
     vec2 values = decode(sample);
 
-    gl_FragColor = vec4(vec3(values.y), 1);
-    // gl_FragColor = vec4(vSamplingPosition, 0, 1);
-    // gl_FragColor = sample * vec4(0, 1, 0, 0);
+    gl_FragColor = vec4(step(0.2, vec3(values.y)), 1);
 }

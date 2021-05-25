@@ -169,6 +169,23 @@ const data = {
             title: "Display",
             controls: [
                 {
+                    type: Demopage.supportedControls.Tabs,
+                    title: "Mode",
+                    id: "display-mode-tabs-id",
+                    unique: true,
+                    options: [
+                        {
+                            value: "monochrome",
+                            label: "Monochrome",
+                            checked: true,
+                        },
+                        {
+                            value: "tricolor",
+                            label: "Tricolor",
+                        },
+                    ]
+                },
+                {
                     type: Demopage.supportedControls.Checkbox,
                     title: "Indicators",
                     id: "indicators-checkbox-id",
