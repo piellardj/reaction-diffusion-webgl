@@ -5,6 +5,8 @@ import { VBO } from "./gl-utils/vbo";
 import { EDisplayMode, EInitialState, EParametersMap, Parameters } from "./parameters";
 import * as InputImage from "./input-image";
 import { RenderToTextureSwapable } from "./render-to-texture-swapable";
+import * as Loader from "./loader";
+
 
 class Engine {
     public static readonly A_FEEDING_MIN: number = 0.01;
@@ -47,17 +49,17 @@ class Engine {
         this.lastIterationUpdate = performance.now() - 5000;
         this.iteration = 0;
 
-        this.asyncLoadShader("display", "fullscreen.vert", "display/display-monochrome.frag", (shader: Shader) => { this.displayMonochromeShader = shader; });
-        this.asyncLoadShader("display", "fullscreen.vert", "display/display-tricolor.frag", (shader: Shader) => { this.displayTricolorShader = shader; });
-        this.asyncLoadShader("update", "fullscreen.vert", "update/update-uniform.frag", (shader: Shader) => { this.updateUniformShader = shader; });
-        this.asyncLoadShader("update", "fullscreen.vert", "update/update-map.frag", (shader: Shader) => { this.updateMapShader = shader; },
+        this.asyncLoadShader("display-monochrome", "fullscreen.vert", "display/display-monochrome.frag", (shader: Shader) => { this.displayMonochromeShader = shader; });
+        this.asyncLoadShader("display-tricolor", "fullscreen.vert", "display/display-tricolor.frag", (shader: Shader) => { this.displayTricolorShader = shader; });
+        this.asyncLoadShader("update-uniform", "fullscreen.vert", "update/update-uniform.frag", (shader: Shader) => { this.updateUniformShader = shader; });
+        this.asyncLoadShader("update-map", "fullscreen.vert", "update/update-map.frag", (shader: Shader) => { this.updateMapShader = shader; },
             {
                 A_FEEDING_MIN: Engine.A_FEEDING_MIN.toFixed(5),
                 A_FEEDING_MAX: Engine.A_FEEDING_MAX.toFixed(5),
                 B_KILLING_MIN: Engine.B_KILLING_MIN.toFixed(5),
                 B_KILLING_MAX: Engine.B_KILLING_MAX.toFixed(5),
             });
-        this.asyncLoadShader("update", "fullscreen.vert", "update/update-map-image.frag", (shader: Shader) => { this.updateImageMapShader = shader; });
+        this.asyncLoadShader("update-image", "fullscreen.vert", "update/update-map-image.frag", (shader: Shader) => { this.updateImageMapShader = shader; });
         this.asyncLoadShader("reset", "fullscreen.vert", "update/reset.frag", (shader: Shader) => { this.resetShader = shader; });
         this.asyncLoadShader("brush-apply", "update/brush.vert", "update/brush-apply.frag", (shader: Shader) => { this.brushApplyShader = shader; });
         this.asyncLoadShader("brush-display", "update/brush.vert", "update/brush-display.frag", (shader: Shader) => { this.brushDisplayShader = shader; });
@@ -255,11 +257,16 @@ class Engine {
     }
 
     private asyncLoadShader(name: string, vertexFilename: string, fragmentFilename: string, callback: (shader: Shader) => unknown, injected: any = {}): void {
+        const id = `shader-${name}`;
+        Loader.registerLoadingObject(id);
+
         ShaderManager.buildShader({
             fragmentFilename,
             vertexFilename,
             injected,
         }, (builtShader: Shader | null) => {
+            Loader.registerLoadedObject(id);
+
             if (builtShader !== null) {
                 builtShader.a["aCorner"].VBO = this.squareVBO;
                 callback(builtShader);

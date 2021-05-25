@@ -1,3 +1,5 @@
+import * as Loader from "./loader";
+
 import "./page-interface-generated";
 
 
@@ -181,8 +183,13 @@ Page.FileControl.addUploadObserver(controlId.INPUT_IMAGE_UPLOAD, (filesList: Fil
     }
 });
 {
+    const id = "default-image";
+    Loader.registerLoadingObject(id);
+
     const defaultImage = new Image();
     defaultImage.addEventListener("load", () => {
+        Loader.registerLoadedObject(id);
+
         for (const observer of Parameters.imageUploadObservers) {
             observer(defaultImage);
         }
