@@ -1,0 +1,36 @@
+.visor-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: white;
+    pointer-events: none;
+}
+
+.visor-bar.horizontal {
+    width: 1px;
+    height: 100%;
+}
+.visor-bar.vertical {
+    width: 100%;
+    height: 1px;
+}
+
+.visor-bar-legend {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 2px;
+    padding: 2px;
+    background: rgba(0, 0, 0, 0.75);
+    color: white;
+    font-size: 12px;
+    white-space: nowrap;
+    border-radius: 3px;
+}
+
+.horizontal .visor-bar-legend {
+    transform: translateX(-50%);
+}
+.vertical .visor-bar-legend {
+    transform: translateY(-50%);
+}

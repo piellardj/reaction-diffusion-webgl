@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="description" content="Reaction-diffusion on GPU in WebGL" />
+    <title>Reaction-diffusion</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="icon" type="image/png" href="favicon-16x16.png" sizes="16x16">
+    <link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96">
+    <link rel="stylesheet" type="text/css" href="css/page.css?v=2021-05-25T21%3A53%3A45.776Z">
+    <link rel="stylesheet" type="text/css" href="css/main.css?v=2021-05-25T21%3A53%3A45.776Z">
+  </head>
+
+  <body>
+    <header>
+      <a class="logo logo-animate-fill" href="https://piellardj.github.io" id="back-to-home-button" aria-label="Go to home">
+        <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+          <g stroke-width="2">
+            <path fill="none" stroke-linejoin="round" d="M17.5,32h4.5v11h7v-7l1,-1h4l1,1v7h7v-11h4.5L32,16.5z" />
+        </svg>
+      </a>
+    </header>
+    <main>
+      <div class="intro">
+        <h1>Reaction-diffusion</h1>
+
+        <div class="description">
+          <p>Reaction-diffusion is a model used to simulate the interaction of two chemical substances 'A' and 'B'. 'A' transforms into 'B' when it is in contact with it. Additionally, a little 'A' is continuously injected, and a fraction of 'B' slowly destroys itself.</p>
+          <p>This is a GPU implementation of the Gray Scott model. It exhibits natural-looking patterns, reminiscent of corals or some animal coats. Use the left mouse button to interact with the simulation.</p>
+
+          <br>
+
+          <a href="https://github.com/piellardj/reaction-diffusion-webgl">More on GitHub</a>
+        </div>
+      </div>
+      <div id="error-messages">
+        <noscript>
+          You need to enable Javascript to run this experiment.
+        </noscript>
+      </div>
+
+      <input type="checkbox" id="fullscreen-checkbox-id" class="hidden">
+      <div class="demo">
+        <input type="checkbox" id="side-pane-checkbox-id" class="hidden">
+        <div id="canvas-container">
+          <canvas id="canvas"></canvas>
+          <div class="loader">
+            <span></span>
+            <div class="loader-animation"></div>
+          </div>
+          <div id="indicators">
+            <div id="fps-indicator-indicator-id">
+              FPS: <span></span>
+            </div>
+            <div id="iteration-indicator-indicator-id">
+              Iteration: <span></span>
+            </div>
+          </div>
+          <div id="canvas-buttons-column">
+            <label class="canvas-button" id="fullscreen-toggle-id" for="fullscreen-checkbox-id"></label>
+            <label class="canvas-button" id="side-pane-toggle-id" for="side-pane-checkbox-id"></label>
+          </div>
+        </div>
+        <div class="controls-block">
+          <label class="canvas-button" id="side-pane-close-toggle-id" for="side-pane-checkbox-id">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+              <line x1="22" y1="22" x2="10" y2="10" stroke-linecap="round" stroke-width="2" />
+              <line x1="22" y1="10" x2="10" y2="22" stroke-linecap="round" stroke-width="2" />
+            </svg>
+          </label>
+          <section class="controls-section">
+            <h2>Parameters</h2>
+
+            <div class="controls-list">
+              <div class="control" id="control-map-tabs-id">
+                <label>Map:</label>
+                <div class="tabs compact" id="map-tabs-id-id">
+                  <input type="radio" name="map-tabs-id" value="uniform" id="map-tabs-id-uniform-id" />
+                  <label for="map-tabs-id-uniform-id">Uniform</label>
+                  <input type="radio" name="map-tabs-id" value="image" id="map-tabs-id-image-id" checked />
+                  <label for="map-tabs-id-image-id">Image</label>
+                </div>
+              </div>
+              <div class="control" id="control-pattern-scale-range-id">
+                <label>Patterns scale:</label>
+                <div class="range-container">
+                  <input type="range" min="1" max="3" value="1" step="0.05" class="slider" id="pattern-scale-range-id">
+                  <div class="range-skin-container">
+                    <div class="range-stub">
+                      <span class="range-bar range-bar-left range-stub-left"></span>
+                    </div>
+                    <div class="range-progress">
+                      <div class="range-progress-left">
+                        <span class="range-bar range-bar-left"></span>
+                        <span class="range-handle"></span>
+                        <output for="pattern-scale-range-id" class="range-tooltip"></output>
+                      </div>
+                      <div class="range-progress-right">
+                        <span class="range-bar range-bar-right"></span>
+                      </div>
+                    </div>
+                    <div class="range-stub">
+                      <span class="range-bar range-bar-right range-stub-right"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="control" id="control-input-image-upload-button">
+                <div class="file-control upload ">
+                  <input type="file" name="file" id="input-image-upload-button" class="file-input" accept=".png,.jpg,.bmp,.webp" />
+                  <label class="file-control-button" for="input-image-upload-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+                      <path d="M12 22L12 13 7 13 16 2 25 13 20 13 20 22ZM6 25L26 25 26 29 6 29Z" />
+                    </svg>
+                    <span>Upload an image</span>
+                  </label>
+                </div>
+              </div>
+              <div class="control" id="control-A-feeding-range-id">
+                <label>A feeding:</label>
+                <div class="range-container">
+                  <input type="range" min="0" max="0.1" value="0.054" step="0.001" class="slider" id="A-feeding-range-id">
+                  <div class="range-skin-container">
+                    <div class="range-stub">
+                      <span class="range-bar range-bar-left range-stub-left"></span>
+                    </div>
+                    <div class="range-progress">
+                      <div class="range-progress-left">
+                        <span class="range-bar range-bar-left"></span>
+                        <span class="range-handle"></span>
+                        <output for="A-feeding-range-id" class="range-tooltip"></output>
+                      </div>
+                      <div class="range-progress-right">
+                        <span class="range-bar range-bar-right"></span>
+                      </div>
+                    </div>
+                    <div class="range-stub">
+                      <span class="range-bar range-bar-right range-stub-right"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="control" id="control-A-diffusion-range-id">
+                <label>A diffusion:</label>
+                <div class="range-container">
+                  <input type="range" min="0" max="0.5" value="0.2097" step="0.001" class="slider" id="A-diffusion-range-id">
+                  <div class="range-skin-container">
+                    <div class="range-stub">
+                      <span class="range-bar range-bar-left range-stub-left"></span>
+                    </div>
+                    <div class="range-progress">
+                      <div class="range-progress-left">
+                        <span class="range-bar range-bar-left"></span>
+                        <span class="range-handle"></span>
+                        <output for="A-diffusion-range-id" class="range-tooltip"></output>
+                      </div>
+                      <div class="range-progress-right">
+                        <span class="range-bar range-bar-right"></span>
+                      </div>
+                    </div>
+                    <div class="range-stub">
+                      <span class="range-bar range-bar-right range-stub-right"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="control" id="control-B-killing-range-id">
+                <label>B killing:</label>
+                <div class="range-container">
+                  <input type="range" min="0" max="0.1" value="0.062" step="0.001" class="slider" id="B-killing-range-id">
+                  <div class="range-skin-container">
+                    <div class="range-stub">
+                      <span class="range-bar range-bar-left range-stub-left"></span>
+                    </div>
+                    <div class="range-progress">
+                      <div class="range-progress-left">
+                        <span class="range-bar range-bar-left"></span>
+                        <span class="range-handle"></span>
+                        <output for="B-killing-range-id" class="range-tooltip"></output>
+                      </div>
+                      <div class="range-progress-right">
+                        <span class="range-bar range-bar-right"></span>
+                      </div>
+                    </div>
+                    <div class="range-stub">
+                      <span class="range-bar range-bar-right range-stub-right"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="control" id="control-B-diffusion-range-id">
+                <label>B diffusion:</label>
+                <div class="range-container">
+                  <input type="range" min="0" max="0.5" value="0.105" step="0.001" class="slider" id="B-diffusion-range-id">
+                  <div class="range-skin-container">
+                    <div class="range-stub">
+                      <span class="range-bar range-bar-left range-stub-left"></span>
+                    </div>
+                    <div class="range-progress">
+                      <div class="range-progress-left">
+                        <span class="range-bar range-bar-left"></span>
+                        <span class="range-handle"></span>
+                        <output for="B-diffusion-range-id" class="range-tooltip"></output>
+                      </div>
+                      <div class="range-progress-right">
+                        <span class="range-bar range-bar-right"></span>
+                      </div>
+                    </div>
+                    <div class="range-stub">
+                      <span class="range-bar range-bar-right range-stub-right"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="control" id="control-pick-values-button-id">
+                <button class="button  flat" id="pick-values-button-id">Pick values</button>
+              </div>
+              <div class="control" id="control-reset-values-button-id">
+                <button class="button  flat" id="reset-values-button-id">Reset values</button>
+              </div>
+            </div>
+          </section>
+          <hr />
+          <section class="controls-section">
+            <h2>Simulation</h2>
+
+            <div class="controls-list">
+              <div class="control" id="control-speed-range-id">
+                <label>Speed:</label>
+                <div class="range-container">
+                  <input type="range" min="0" max="100" value="20" step="1" class="slider" id="speed-range-id">
+                  <div class="range-skin-container">
+                    <div class="range-stub">
+                      <span class="range-bar range-bar-left range-stub-left"></span>
+                    </div>
+                    <div class="range-progress">
+                      <div class="range-progress-left">
+                        <span class="range-bar range-bar-left"></span>
+                        <span class="range-handle"></span>
+                        <output for="speed-range-id" class="range-tooltip"></output>
+                      </div>
+                      <div class="range-progress-right">
+                        <span class="range-bar range-bar-right"></span>
+                      </div>
+                    </div>
+                    <div class="range-stub">
+                      <span class="range-bar range-bar-right range-stub-right"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="control" id="control-brush-size-range-id">
+                <label>Brush size:</label>
+                <div class="range-container">
+                  <input type="range" min="20" max="100" value="30" step="1" class="slider" id="brush-size-range-id">
+                  <div class="range-skin-container">
+                    <div class="range-stub">
+                      <span class="range-bar range-bar-left range-stub-left"></span>
+                    </div>
+                    <div class="range-progress">
+                      <div class="range-progress-left">
+                        <span class="range-bar range-bar-left"></span>
+                        <span class="range-handle"></span>
+                        <output for="brush-size-range-id" class="range-tooltip"></output>
+                      </div>
+                      <div class="range-progress-right">
+                        <span class="range-bar range-bar-right"></span>
+                      </div>
+                    </div>
+                    <div class="range-stub">
+                      <span class="range-bar range-bar-right range-stub-right"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="control" id="control-brush-display-checkbox-id">
+                <label>Display brush:</label>
+                <div class="checkbox">
+                  <input type="checkbox" id="brush-display-checkbox-id">
+                  <label for="brush-display-checkbox-id" class="checkmark"></label>
+                </div>
+              </div>
+              <div class="control" id="control-initial-state-tabs-id">
+                <label>Initial state:</label>
+                <div class="tabs compact" id="initial-state-tabs-id-id">
+                  <input type="radio" name="initial-state-tabs-id" value="blank" id="initial-state-tabs-id-blank-id" />
+                  <label for="initial-state-tabs-id-blank-id">Blank</label>
+                  <input type="radio" name="initial-state-tabs-id" value="disc" id="initial-state-tabs-id-disc-id" />
+                  <label for="initial-state-tabs-id-disc-id">Disc</label>
+                  <input type="radio" name="initial-state-tabs-id" value="circle" id="initial-state-tabs-id-circle-id" checked />
+                  <label for="initial-state-tabs-id-circle-id">Circles</label>
+                </div>
+              </div>
+              <div class="control" id="control-reset-button-id">
+                <button class="button  flat" id="reset-button-id">Reset</button>
+              </div>
+            </div>
+          </section>
+          <hr />
+          <section class="controls-section">
+            <h2>Display</h2>
+
+            <div class="controls-list">
+              <div class="control" id="control-display-mode-tabs-id">
+                <label>Mode:</label>
+                <div class="tabs compact" id="display-mode-tabs-id-id">
+                  <input type="radio" name="display-mode-tabs-id" value="monochrome" id="display-mode-tabs-id-monochrome-id" checked />
+                  <label for="display-mode-tabs-id-monochrome-id">Monochrome</label>
+                  <input type="radio" name="display-mode-tabs-id" value="tricolor" id="display-mode-tabs-id-tricolor-id" />
+                  <label for="display-mode-tabs-id-tricolor-id">Tricolor</label>
+                </div>
+              </div>
+              <div class="control" id="control-indicators-checkbox-id">
+                <label>Indicators:</label>
+                <div class="checkbox">
+                  <input type="checkbox" id="indicators-checkbox-id">
+                  <label for="indicators-checkbox-id" class="checkmark"></label>
+                </div>
+              </div>
+            </div>
+          </section>
+          <hr />
+          <section class="controls-section">
+            <h2>Output</h2>
+
+            <div class="controls-list">
+              <div class="control" id="control-image-download-id">
+                <div class="file-control download ">
+                  <input type="button" id="image-download-id" class="file-input" />
+                  <label class="file-control-button" for="image-download-id">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+                      <path d="M12 4L12 13 7 13 16 24 25 13 20 13 20 4ZM6 25L26 25 26 29 6 29Z" />
+                    </svg>
+                    <span>Download image</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="badge-shelf">
+        <a class="badge" href="mailto:jeremie.piellard@gmail.com" title="Email">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" viewBox="0 0 512 512">
+            <path d="M512 85V448H0V85l256 224L512 85zM488 64H24L256 267 488 64z" />
+          </svg>
+        </a>
+
+        <a class="badge" href="https://github.com/piellardj" title="GitHub">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" viewBox="0 0 1024 1024">
+            <path d="M512 0C229 0 0 229 0 512c0 226 147 418 350 486 26 5 35-11 35-25 0-12 0-53-1-95C242 909 212 818 212 818c-23-59-57-75-57-75-47-32 4-31 4-31 51 4 78 53 78 53 46 78 120 56 149 43 5-33 18-56 33-68C305 725 185 682 185 485c0-56 20-102 53-137-5-13-23-65 5-136 0 0 43-14 141 53 41-11 85-17 128-17 44 0 87 6 128 17 98-66 141-52 141-52 28 71 10 123 5 136 33 36 53 81 53 137 0 197-120 240-234 253 18 16 35 47 35 95 0 68-1 124-1 141 0 14 9 30 35 25C877 930 1024 738 1024 512 1024 229 795 0 512 0z" />
+          </svg>
+        </a>
+
+        <a class="badge" href="https://www.linkedin.com/in/jeremie-piellard/" title="LinkedIn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" viewBox="0 0 512 512">
+            <path d="M30 177l93-1v304l-93 1v-304z" />
+            <path d="M200 177l89-1v39l0 11c26-26 53-45 97-45 51 0 100 21 100 91v208l-90 1v-159c0-35-9-58-51-58-37 0-52 7-52 55v160l-92 1v-304z" />
+            <path d="M128 81c0 28-23 51-51 51s-51-23-51-51c0-28 23-51 51-51 28 0 51 23 51 51z" />
+          </svg>
+        </a>
+      </div>
+    </footer>
+    <script type="text/javascript">
+      var Page = Page || (Page = {});
+      Page.version = "2021-05-25T21%3A53%3A45.776Z";
+    </script>
+    <script src="script/page.min.js?v=2021-05-25T21%3A53%3A45.776Z"></script>
+    <script src="script/main.min.js?v=2021-05-25T21%3A53%3A45.776Z"></script>
+  </body>
+
+</html>
