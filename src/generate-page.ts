@@ -125,7 +125,7 @@ const data = {
                     id: "speed-range-id",
                     min: 0,
                     max: 100,
-                    value: 10,
+                    value: 20,
                     step: 1
                 },
                 {
