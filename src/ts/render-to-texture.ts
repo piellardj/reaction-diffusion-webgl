@@ -1,7 +1,7 @@
 import { gl } from "./gl-utils/gl-canvas";
 
 
-class Texture {
+class RenderToTexture {
     public readonly texture: WebGLTexture;
     public readonly framebuffer: WebGLFramebuffer;
     private _width: number;
@@ -48,5 +48,5 @@ class Texture {
 }
 
 export {
-    Texture,
+    RenderToTexture,
 };

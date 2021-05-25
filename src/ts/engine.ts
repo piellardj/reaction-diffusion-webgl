@@ -4,7 +4,7 @@ import * as ShaderManager from "./gl-utils/shader-manager";
 import { VBO } from "./gl-utils/vbo";
 import { EInitialState, EParametersMap, Parameters } from "./parameters";
 import * as InputImage from "./input-image";
-import { Texture } from "./texture";
+import { RenderToTexture } from "./render-to-texture";
 
 class Engine {
     public static readonly A_FEEDING_MIN: number = 0.01;
@@ -22,8 +22,8 @@ class Engine {
 
     private readonly squareVBO: VBO;
 
-    private previousTexture: Texture;
-    private currentTexture: Texture;
+    private previousTexture: RenderToTexture;
+    private currentTexture: RenderToTexture;
 
     private initialized: boolean;
     private _iteration: number;
@@ -32,8 +32,8 @@ class Engine {
     public constructor() {
         this.squareVBO = VBO.createQuad(gl, -1, -1, +1, +1);
 
-        this.previousTexture = new Texture();
-        this.currentTexture = new Texture();
+        this.previousTexture = new RenderToTexture();
+        this.currentTexture = new RenderToTexture();
 
         this.initialized = false;
         this.lastIterationUpdate = performance.now() - 5000;
