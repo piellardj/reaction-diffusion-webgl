@@ -159,7 +159,7 @@ const data = {
                         },
                         {
                             value: "circle",
-                            label: "Circle",
+                            label: "Circles",
                             checked: true,
                         },
                     ]
