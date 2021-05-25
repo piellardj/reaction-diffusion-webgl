@@ -140,6 +140,7 @@ Page.Button.addObserver(controlId.RESET_BUTTON, callResetObservers);
 Page.Tabs.addObserver(controlId.PARAMETERS_MAP_TABS, callResetObservers);
 Page.Tabs.addObserver(controlId.DISPLAY_MODE_TABS, callResetObservers);
 Page.Tabs.addObserver(controlId.INITIAL_STATE_TABS, callResetObservers);
+Parameters.imageUploadObservers.push(callResetObservers);
 
 Page.Tabs.addObserver(controlId.PARAMETERS_MAP_TABS, () => {
     isInValuePickingMode = false;
