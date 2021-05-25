@@ -45,11 +45,11 @@ const data = {
                         {
                             value: "uniform",
                             label: "Uniform",
-                            checked: true,
                         },
                         {
                             value: "image",
                             label: "Image",
+                            checked: true,
                         },
                     ]
                 },
