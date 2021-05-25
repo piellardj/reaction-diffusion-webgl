@@ -129,7 +129,7 @@ class Engine {
                         ];
                         updateShader = this.updateUniformShader;
                     }
-                } else if (map === EParametersMap.RANGE) {
+                } else if (map === EParametersMap.VALUE_PICKING) {
                     if (this.updateMapShader) {
                         this.updateMapShader.u["uRates"].value = [
                             Parameters.ADiffusionRate,
@@ -225,28 +225,30 @@ class Engine {
     }
 
     private handleBrush(): void {
-        const mousePosition = Page.Canvas.getMousePosition();
-        if (mousePosition[0] >= 0 && mousePosition[0] <= 1 && mousePosition[1] >= 0 && mousePosition[1] <= 1) {
-            const size = Parameters.brushSize;
-            const position = [mousePosition[0], 1 - mousePosition[1]];
-            const brushSize = [size / this.internalTextures[0].width, size / this.internalTextures[1].height];
+        if (Parameters.parametersMap !== EParametersMap.VALUE_PICKING) {
+            const mousePosition = Page.Canvas.getMousePosition();
+            if (mousePosition[0] >= 0 && mousePosition[0] <= 1 && mousePosition[1] >= 0 && mousePosition[1] <= 1) {
+                const size = Parameters.brushSize;
+                const position = [mousePosition[0], 1 - mousePosition[1]];
+                const brushSize = [size / this.internalTextures[0].width, size / this.internalTextures[1].height];
 
-            if (this.brushApplyShader) {
-                this.brushApplyShader.u["uPosition"].value = position;
-                this.brushApplyShader.u["uSize"].value = brushSize;
-            }
-            if (this.brushDisplayShader) {
-                this.brushDisplayShader.u["uPosition"].value = position;
-                this.brushDisplayShader.u["uSize"].value = brushSize;
-            }
+                if (this.brushApplyShader) {
+                    this.brushApplyShader.u["uPosition"].value = position;
+                    this.brushApplyShader.u["uSize"].value = brushSize;
+                }
+                if (this.brushDisplayShader) {
+                    this.brushDisplayShader.u["uPosition"].value = position;
+                    this.brushDisplayShader.u["uSize"].value = brushSize;
+                }
 
-            if (this.brushApplyShader && Page.Canvas.isMouseDown()) {
-                this.brushApplyShader.use();
-                this.brushApplyShader.bindUniformsAndAttributes();
+                if (this.brushApplyShader && Page.Canvas.isMouseDown()) {
+                    this.brushApplyShader.use();
+                    this.brushApplyShader.bindUniformsAndAttributes();
 
-                for (const texture of this.internalTextures) {
-                    gl.bindFramebuffer(gl.FRAMEBUFFER, texture.currentFramebuffer);
-                    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+                    for (const texture of this.internalTextures) {
+                        gl.bindFramebuffer(gl.FRAMEBUFFER, texture.currentFramebuffer);
+                        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+                    }
                 }
             }
         }

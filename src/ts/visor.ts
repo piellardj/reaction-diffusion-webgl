@@ -25,15 +25,24 @@ class Visor {
 
         this.verticalLine = Visor.createBar(EBarDirection.VERTICAL, "A feeding rate");
         container.appendChild(this.verticalLine.container);
+
+        Page.Canvas.getCanvas().addEventListener("click", () => {
+            if (Parameters.parametersMap === EParametersMap.VALUE_PICKING) {
+                const currentPos = Page.Canvas.getMousePosition();
+                Parameters.AFeedingRate = Visor.aimedFeedA(currentPos);
+                Parameters.BKillingRate = Visor.aimedKillB(currentPos);
+                Parameters.exitValuePickingMode();
+            }
+        });
     }
 
     public update(): void {
         const mousePosition = Page.Canvas.getMousePosition();
-        const isVisible = (Parameters.parametersMap === EParametersMap.RANGE) && Visor.isInRange(0, 1, mousePosition[0]) && Visor.isInRange(0, 1, mousePosition[1]);
+        const isVisible = (Parameters.parametersMap === EParametersMap.VALUE_PICKING) && Visor.isInRange(0, 1, mousePosition[0]) && Visor.isInRange(0, 1, mousePosition[1]);
 
         if (isVisible) {
-            this.horizontalLine.legendValue.textContent = Visor.toString(Visor.interpolate(Engine.B_KILLING_MIN, Engine.B_KILLING_MAX, mousePosition[0]), 5);
-            this.verticalLine.legendValue.textContent = Visor.toString(Visor.interpolate(Engine.A_FEEDING_MIN, Engine.A_FEEDING_MAX, 1 - mousePosition[1]), 5);
+            this.horizontalLine.legendValue.textContent = Visor.toString(Visor.aimedFeedA(mousePosition), 5);
+            this.verticalLine.legendValue.textContent = Visor.toString(Visor.aimedKillB(mousePosition), 5);
 
             const canvasSize = Page.Canvas.getSize();
             const hPixel = Math.round(mousePosition[0] * canvasSize[0]);
@@ -70,6 +79,16 @@ class Visor {
         this.verticalLine.container.style.display = display;
     }
 
+    private static aimedFeedA(mousePos: number[]): number {
+        const y = Visor.clamp(0, 1, 1 - mousePos[1]);
+        return Visor.interpolate(Engine.A_FEEDING_MIN, Engine.A_FEEDING_MAX, y);
+    }
+
+    private static aimedKillB(mousePos: number[]): number {
+        const x = Visor.clamp(0, 1, mousePos[0]);
+        return Visor.interpolate(Engine.B_KILLING_MIN, Engine.B_KILLING_MAX, x);
+    }
+
     private static createBar(direction: EBarDirection, label: string): IBar {
         const container = document.createElement("div");
         container.classList.add("visor-bar");
@@ -94,6 +113,12 @@ class Visor {
             legendContainer,
             legendValue,
         };
+    }
+
+    private static clamp(min: number, max: number, x: number): number {
+        if (x < min) return min;
+        if (x > max) return max;
+        return x;
     }
 
     private static interpolate(a: number, b: number, x: number): number {

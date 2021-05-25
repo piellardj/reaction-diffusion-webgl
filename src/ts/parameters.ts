@@ -10,6 +10,7 @@ const controlId = {
     A_DIFFUSION_RANGE: "A-diffusion-range-id",
     B_KILLING_RANGE: "B-killing-range-id",
     B_DIFFUSION_RANGE: "B-diffusion-range-id",
+    PICK_VALUES_BUTTON: "pick-values-button-id",
     RESET_VALUES_BUTTON: "reset-values-button-id",
 
     SPEED_RANGE: "speed-range-id",
@@ -35,9 +36,10 @@ function callObservers(observers: Observer[]): void {
 
 enum EParametersMap {
     UNIFORM = "uniform",
-    RANGE = "range",
+    VALUE_PICKING = "value_picking", // technical, not defined in the control
     IMAGE = "image",
 }
+let isInValuePickingMode = false;
 
 enum EInitialState {
     BLANK = "blank",
@@ -50,6 +52,19 @@ enum EDisplayMode {
     TRICOLOR = "tricolor",
 }
 
+const updateParametersVisibility = () => {
+    const map = Parameters.parametersMap;
+    Page.Controls.setVisibility(controlId.A_FEEDING_RANGE, map !== EParametersMap.IMAGE);
+    Page.Controls.setVisibility(controlId.B_KILLING_RANGE, map !== EParametersMap.IMAGE);
+    Page.Controls.setVisibility(controlId.PICK_VALUES_BUTTON, map !== EParametersMap.IMAGE);
+    Page.Controls.setVisibility(controlId.RESET_VALUES_BUTTON, map !== EParametersMap.IMAGE);
+    Page.Controls.setVisibility(controlId.PATTERNS_SCALE, map === EParametersMap.IMAGE);
+    Page.Controls.setVisibility(controlId.A_DIFFUSION_RANGE, map !== EParametersMap.IMAGE);
+    Page.Controls.setVisibility(controlId.B_DIFFUSION_RANGE, map !== EParametersMap.IMAGE);
+    Page.Controls.setVisibility(controlId.INPUT_IMAGE_UPLOAD, map === EParametersMap.IMAGE);
+    Page.Controls.setVisibility(controlId.DISPLAY_MODE_TABS, map === EParametersMap.IMAGE);
+};
+
 abstract class Parameters {
     public static readonly imageUploadObservers: ImageUploadObserver[] = [];
     public static readonly imageDownloadObservers: Observer[] = [];
@@ -57,19 +72,34 @@ abstract class Parameters {
     public static readonly resetObservers: Observer[] = [];
 
     public static get parametersMap(): EParametersMap {
+        if (isInValuePickingMode) {
+            return EParametersMap.VALUE_PICKING;
+        }
         return Page.Tabs.getValues(controlId.PARAMETERS_MAP_TABS)[0] as EParametersMap;
     }
+    public static exitValuePickingMode(): void {
+        isInValuePickingMode = false;
+        Page.Tabs.setValues(controlId.PARAMETERS_MAP_TABS, [EParametersMap.UNIFORM]);
+        updateParametersVisibility();
+    }
+
     public static get patternsScale(): number {
         return Page.Range.getValue(controlId.PATTERNS_SCALE);
     }
     public static get AFeedingRate(): number {
         return Page.Range.getValue(controlId.A_FEEDING_RANGE);
     }
+    public static set AFeedingRate(value: number) {
+        Page.Range.setValue(controlId.A_FEEDING_RANGE, value, true);
+    }
     public static get ADiffusionRate(): number {
         return Page.Range.getValue(controlId.A_DIFFUSION_RANGE);
     }
     public static get BKillingRate(): number {
         return Page.Range.getValue(controlId.B_KILLING_RANGE);
+    }
+    public static set BKillingRate(value: number) {
+        Page.Range.setValue(controlId.B_KILLING_RANGE, value, true);
     }
     public static get BDIffusionRate(): number {
         return Page.Range.getValue(controlId.B_DIFFUSION_RANGE);
@@ -82,9 +112,12 @@ abstract class Parameters {
         return Page.Range.getValue(controlId.BRUSH_SIZE_RANGE);
     }
     public static get displayBrush(): boolean {
-        return Page.Checkbox.isChecked(controlId.BRUSH_DISPLAY_CHECKBOX);
+        return !isInValuePickingMode && Page.Checkbox.isChecked(controlId.BRUSH_DISPLAY_CHECKBOX);
     }
     public static get initialState(): EInitialState {
+        if (isInValuePickingMode) {
+            return EInitialState.CIRCLE;
+        }
         return Page.Tabs.getValues(controlId.INITIAL_STATE_TABS)[0] as EInitialState;
     }
 
@@ -104,18 +137,11 @@ const callResetObservers = () => { callObservers(Parameters.resetObservers); };
 Page.Button.addObserver(controlId.RESET_BUTTON, callResetObservers);
 Page.Tabs.addObserver(controlId.DISPLAY_MODE_TABS, callResetObservers);
 
-const updateParametersVisibility = () => {
-    const map = Parameters.parametersMap;
-    Page.Controls.setVisibility(controlId.A_FEEDING_RANGE, map === EParametersMap.UNIFORM);
-    Page.Controls.setVisibility(controlId.B_KILLING_RANGE, map === EParametersMap.UNIFORM);
-    Page.Controls.setVisibility(controlId.RESET_VALUES_BUTTON, map !== EParametersMap.IMAGE);
-    Page.Controls.setVisibility(controlId.PATTERNS_SCALE, map === EParametersMap.IMAGE);
-    Page.Controls.setVisibility(controlId.A_DIFFUSION_RANGE, map !== EParametersMap.IMAGE);
-    Page.Controls.setVisibility(controlId.B_DIFFUSION_RANGE, map !== EParametersMap.IMAGE);
-    Page.Controls.setVisibility(controlId.INPUT_IMAGE_UPLOAD, map === EParametersMap.IMAGE);
-    Page.Controls.setVisibility(controlId.DISPLAY_MODE_TABS, map === EParametersMap.IMAGE);
-};
-Page.Tabs.addObserver(controlId.PARAMETERS_MAP_TABS, updateParametersVisibility);
+
+Page.Tabs.addObserver(controlId.PARAMETERS_MAP_TABS, () => {
+    isInValuePickingMode = false;
+    updateParametersVisibility();
+});
 updateParametersVisibility();
 
 const updateIndicatorsVisibility = () => {
@@ -129,6 +155,13 @@ Page.Button.addObserver(controlId.RESET_VALUES_BUTTON, () => {
     Page.Range.setValue(controlId.A_DIFFUSION_RANGE, 0.2097, true);
     Page.Range.setValue(controlId.B_KILLING_RANGE, 0.0620, true);
     Page.Range.setValue(controlId.B_DIFFUSION_RANGE, 0.1050, true);
+});
+
+Page.Button.addObserver(controlId.PICK_VALUES_BUTTON, () => {
+    Page.Tabs.setValues(controlId.PARAMETERS_MAP_TABS, []);
+    isInValuePickingMode = true;
+    updateParametersVisibility();
+    callResetObservers();
 });
 
 Page.FileControl.addUploadObserver(controlId.INPUT_IMAGE_UPLOAD, (filesList: FileList) => {

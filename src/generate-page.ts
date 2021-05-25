@@ -48,10 +48,6 @@ const data = {
                             checked: true,
                         },
                         {
-                            value: "range",
-                            label: "Range",
-                        },
-                        {
                             value: "image",
                             label: "Image",
                         },
@@ -107,6 +103,11 @@ const data = {
                     max: 0.5,
                     value: 0.1050,
                     step: 0.001
+                },
+                {
+                    type: Demopage.supportedControls.Button,
+                    id: "pick-values-button-id",
+                    label: "Pick values"
                 },
                 {
                     type: Demopage.supportedControls.Button,
