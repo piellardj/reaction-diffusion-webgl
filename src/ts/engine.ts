@@ -68,30 +68,40 @@ class Engine {
         if (this.initialized) {
             let updateShader: Shader;
             const map = Parameters.parametersMap;
-            if (map === EParametersMap.UNIFORM && this.updateUniformShader) {
-                this.updateUniformShader.u["uRates"].value = [
-                    Parameters.AFeedingRate,
-                    Parameters.BKillingRate,
-                    Parameters.ADiffusionRate,
-                    Parameters.BDIffusionRate,
-                ];
-                updateShader = this.updateUniformShader;
-            } else if (map === EParametersMap.RANGE && this.updateMapShader) {
-                this.updateMapShader.u["uRates"].value = [
-                    Parameters.ADiffusionRate,
-                    Parameters.BDIffusionRate,
-                ];
-                updateShader = this.updateMapShader;
-            } else if (this.updateImageMapShader) {
-                const inputImageTexture = InputImage.getTexture();
-                this.updateImageMapShader.u["uImageMapTexture"].value = inputImageTexture.id;
+            if (map === EParametersMap.UNIFORM) {
+                if (this.updateUniformShader) {
+                    this.updateUniformShader.u["uRates"].value = [
+                        Parameters.AFeedingRate,
+                        Parameters.BKillingRate,
+                        Parameters.ADiffusionRate,
+                        Parameters.BDIffusionRate,
+                    ];
+                    updateShader = this.updateUniformShader;
+                }
+            } else if (map === EParametersMap.RANGE) {
+                if (this.updateMapShader) {
+                    this.updateMapShader.u["uRates"].value = [
+                        Parameters.ADiffusionRate,
+                        Parameters.BDIffusionRate,
+                    ];
+                    updateShader = this.updateMapShader;
+                }
+            } else if (map === EParametersMap.IMAGE) {
+                if (this.updateImageMapShader) {
+                    const inputImageTexture = InputImage.getTexture();
+                    this.updateImageMapShader.u["uImageMapTexture"].value = inputImageTexture.id;
+                    this.updateImageMapShader.u["uSampledChannel"].value = [0, 0, 0, 1];
 
-                const canvasAspectRatio = Page.Canvas.getAspectRatio();
-                const imageAspectRatio = inputImageTexture.width / inputImageTexture.height;
-                if (canvasAspectRatio > imageAspectRatio) {
-                    this.updateImageMapShader.u["uImageMapScaling"].value = [canvasAspectRatio / imageAspectRatio, 1];
-                } else {
-                    this.updateImageMapShader.u["uImageMapScaling"].value = [1, imageAspectRatio / canvasAspectRatio];
+                    const canvasAspectRatio = Page.Canvas.getAspectRatio();
+                    const imageAspectRatio = inputImageTexture.width / inputImageTexture.height;
+                    if (canvasAspectRatio > imageAspectRatio) {
+                        this.updateImageMapShader.u["uImageMapScaling"].value = [canvasAspectRatio / imageAspectRatio, 1];
+                    } else {
+                        this.updateImageMapShader.u["uImageMapScaling"].value = [1, imageAspectRatio / canvasAspectRatio];
+                    }
+
+                    this.updateImageMapShader.u["uDiffuseScaling"].value = Parameters.patternsScale;
+                    updateShader = this.updateImageMapShader;
                 }
 
                 this.updateImageMapShader.u["uDiffuseScaling"].value = Parameters.patternsScale;
