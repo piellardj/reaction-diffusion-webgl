@@ -108,6 +108,11 @@ const data = {
                     value: 0.1050,
                     step: 0.001
                 },
+                {
+                    type: Demopage.supportedControls.Button,
+                    id: "reset-values-button-id",
+                    label: "Reset values"
+                }
             ]
         },
         {

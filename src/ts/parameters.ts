@@ -10,6 +10,7 @@ const controlId = {
     A_DIFFUSION_RANGE: "A-diffusion-range-id",
     B_KILLING_RANGE: "B-killing-range-id",
     B_DIFFUSION_RANGE: "B-diffusion-range-id",
+    RESET_VALUES_BUTTON: "reset-values-button-id",
 
     SPEED_RANGE: "speed-range-id",
     BRUSH_SIZE_RANGE: "brush-size-range-id",
@@ -107,6 +108,7 @@ const updateParametersVisibility = () => {
     const map = Parameters.parametersMap;
     Page.Controls.setVisibility(controlId.A_FEEDING_RANGE, map === EParametersMap.UNIFORM);
     Page.Controls.setVisibility(controlId.B_KILLING_RANGE, map === EParametersMap.UNIFORM);
+    Page.Controls.setVisibility(controlId.RESET_VALUES_BUTTON, map !== EParametersMap.IMAGE);
     Page.Controls.setVisibility(controlId.PATTERNS_SCALE, map === EParametersMap.IMAGE);
     Page.Controls.setVisibility(controlId.A_DIFFUSION_RANGE, map !== EParametersMap.IMAGE);
     Page.Controls.setVisibility(controlId.B_DIFFUSION_RANGE, map !== EParametersMap.IMAGE);
@@ -121,6 +123,13 @@ const updateIndicatorsVisibility = () => {
 };
 Page.Checkbox.addObserver(controlId.INDICATORS_CHECKBOX, updateIndicatorsVisibility);
 updateIndicatorsVisibility();
+
+Page.Button.addObserver(controlId.RESET_VALUES_BUTTON, () => {
+    Page.Range.setValue(controlId.A_FEEDING_RANGE, 0.054, true);
+    Page.Range.setValue(controlId.A_DIFFUSION_RANGE, 0.2097, true);
+    Page.Range.setValue(controlId.B_KILLING_RANGE, 0.0620, true);
+    Page.Range.setValue(controlId.B_DIFFUSION_RANGE, 0.1050, true);
+});
 
 Page.FileControl.addUploadObserver(controlId.INPUT_IMAGE_UPLOAD, (filesList: FileList) => {
     if (filesList.length === 1) {
