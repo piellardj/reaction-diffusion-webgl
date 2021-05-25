@@ -75,7 +75,7 @@ function main(): void {
 
 function download(): void {
     const canvas = Page.Canvas.getCanvas();
-    const name = "raction-diffusion.png";
+    const name = "reaction-diffusion.png";
 
     if ((canvas as any).msToBlob) { // for IE
         const blob = (canvas as any).msToBlob();
