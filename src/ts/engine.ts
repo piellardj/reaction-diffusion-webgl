@@ -4,7 +4,7 @@ import * as ShaderManager from "./gl-utils/shader-manager";
 import { VBO } from "./gl-utils/vbo";
 import { EInitialState, EParametersMap, Parameters } from "./parameters";
 import * as InputImage from "./input-image";
-import { RenderToTexture } from "./render-to-texture";
+import { RenderToTextureSwapable } from "./render-to-texture-swapable";
 
 class Engine {
     public static readonly A_FEEDING_MIN: number = 0.01;
@@ -22,8 +22,7 @@ class Engine {
 
     private readonly squareVBO: VBO;
 
-    private previousTexture: RenderToTexture;
-    private currentTexture: RenderToTexture;
+    private internalTexture: RenderToTextureSwapable;
 
     private initialized: boolean;
     private _iteration: number;
@@ -32,8 +31,7 @@ class Engine {
     public constructor() {
         this.squareVBO = VBO.createQuad(gl, -1, -1, +1, +1);
 
-        this.previousTexture = new RenderToTexture();
-        this.currentTexture = new RenderToTexture();
+        this.internalTexture = new RenderToTextureSwapable();
 
         this.initialized = false;
         this.lastIterationUpdate = performance.now() - 5000;
@@ -55,8 +53,7 @@ class Engine {
     }
 
     public initialize(width: number, height: number): void {
-        this.previousTexture.reserveSpace(width, height);
-        this.currentTexture.reserveSpace(width, height);
+        this.internalTexture.reserveSpace(width, height);
         this.initialized = false;
         this.iteration = 0;
     }
@@ -105,15 +102,15 @@ class Engine {
                 updateShader.use();
                 updateShader.bindAttributes();
 
-                updateShader.u["uTexelSize"].value = [1 / this.previousTexture.width, 1 / this.previousTexture.height];
+                updateShader.u["uTexelSize"].value = [1 / this.internalTexture.width, 1 / this.internalTexture.height];
 
                 const nbIterations = Parameters.speed;
                 for (let i = nbIterations; i > 0; i--) {
-                    this.swapTextures();
+                    this.internalTexture.swap();
 
-                    gl.bindFramebuffer(gl.FRAMEBUFFER, this.currentTexture.framebuffer);
+                    gl.bindFramebuffer(gl.FRAMEBUFFER, this.internalTexture.currentFramebuffer);
 
-                    updateShader.u["uPreviousIteration"].value = this.previousTexture.texture;
+                    updateShader.u["uPreviousIteration"].value = this.internalTexture.previous;
                     updateShader.bindUniforms();
                     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
                 }
@@ -124,7 +121,7 @@ class Engine {
 
     public reset(): boolean {
         if (this.resetShader) {
-            gl.bindFramebuffer(gl.FRAMEBUFFER, this.currentTexture.framebuffer);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, this.internalTexture.currentFramebuffer);
 
             const pattern = Parameters.initialState;
             this.resetShader.u["uPattern"].value = [pattern === EInitialState.BLANK, pattern === EInitialState.DISC, pattern === EInitialState.CIRCLE, 0];
@@ -141,7 +138,7 @@ class Engine {
         if (this.displayShader) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-            this.displayShader.u["uTexture"].value = this.currentTexture.texture;
+            this.displayShader.u["uTexture"].value = this.internalTexture.current;
             this.displayShader.use();
             this.displayShader.bindUniformsAndAttributes();
 
@@ -173,7 +170,7 @@ class Engine {
         if (mousePosition[0] >= 0 && mousePosition[0] <= 1 && mousePosition[1] >= 0 && mousePosition[1] <= 1) {
             const size = Parameters.brushSize;
             const position = [mousePosition[0], 1 - mousePosition[1]];
-            const brushSize = [size / this.currentTexture.width, size / this.currentTexture.height];
+            const brushSize = [size / this.internalTexture.width, size / this.internalTexture.height];
 
             if (this.brushApplyShader) {
                 this.brushApplyShader.u["uPosition"].value = position;
@@ -185,18 +182,12 @@ class Engine {
             }
 
             if (this.brushApplyShader && Page.Canvas.isMouseDown()) {
-                gl.bindFramebuffer(gl.FRAMEBUFFER, this.currentTexture.framebuffer);
+                gl.bindFramebuffer(gl.FRAMEBUFFER, this.internalTexture.currentFramebuffer);
                 this.brushApplyShader.use();
                 this.brushApplyShader.bindUniformsAndAttributes();
                 gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
             }
         }
-    }
-
-    private swapTextures(): void {
-        const tmp = this.currentTexture;
-        this.currentTexture = this.previousTexture;
-        this.previousTexture = tmp;
     }
 
     private asyncLoadShader(name: string, vertexFilename: string, fragmentFilename: string, callback: (shader: Shader) => unknown, injected: any = {}): void {
