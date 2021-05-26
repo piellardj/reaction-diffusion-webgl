@@ -50,6 +50,13 @@ function main(): void {
     function mainLoop(): void {
         FPSIndicator.registerFrame();
 
+        if (needToDownload) {
+            // redraw before resizing the canvas because the download pane might open, which changes the canvas size
+            engine.drawToCanvas(); // redraw because preserveDrawingBuffer is false
+            download();
+            needToDownload = false;
+        }
+
         if (needToAdjustCanvasSize) {
             GLCanvas.adjustSize(false);
             const canvasSize = Page.Canvas.getSize();
@@ -68,13 +75,6 @@ function main(): void {
         engine.drawToCanvas();
 
         visor.update();
-
-        if (needToDownload) {
-            // download in the loop because preserveDrawingBuffer is false
-            // also, download before drawing the brush
-            download();
-            needToDownload = false;
-        }
 
         if (Parameters.displayBrush) {
             engine.displayBrush();
