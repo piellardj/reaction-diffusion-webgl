@@ -52,9 +52,8 @@ function main(): void {
 
         if (needToAdjustCanvasSize) {
             GLCanvas.adjustSize(false);
-            const canvasSize = Page.Canvas.getSize();
-            gl.viewport(0, 0, canvasSize[0], canvasSize[1]);
-            engine.initialize(canvasSize[0], canvasSize[1]);
+            gl.viewport(0, 0, canvas.width, canvas.width);
+            engine.initialize(canvas.width, canvas.width);
             needToAdjustCanvasSize = false;
         }
 
