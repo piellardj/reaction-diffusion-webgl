@@ -194,18 +194,18 @@ Page.FileControl.addUploadObserver(controlId.INPUT_IMAGE_UPLOAD, (filesList: Fil
     }
 });
 {
-    const id = "default-image";
-    Loader.registerLoadingObject(id);
+    const url = `./resources/cat.jpg?v=${Page.version}`;
+    Loader.registerLoadingObject(url);
 
     const defaultImage = new Image();
     defaultImage.addEventListener("load", () => {
-        Loader.registerLoadedObject(id);
+        Loader.registerLoadedObject(url);
 
         for (const observer of Parameters.imageUploadObservers) {
             observer(defaultImage);
         }
     });
-    defaultImage.src = "./resources/cat.jpg";
+    defaultImage.src = url;
 }
 
 Page.FileControl.addDownloadObserver(controlId.IMAGE_DOWNLOAD, () => {
