@@ -1,3 +1,4 @@
+import { EDisplayMode, EInitialState, EParametersMap, EShading } from "./enums";
 import * as Loader from "./loader";
 
 import "./page-interface-generated";
@@ -39,29 +40,7 @@ function callObservers(observers: Observer[]): void {
     }
 }
 
-enum EParametersMap {
-    UNIFORM = "uniform",
-    VALUE_PICKING = "value_picking", // technical, not defined in the control
-    IMAGE = "image",
-}
 let isInValuePickingMode = false;
-
-enum EInitialState {
-    BLANK = "blank",
-    DISC = "disc",
-    CIRCLE = "circle",
-}
-
-enum EDisplayMode {
-    MONOCHROME = "monochrome",
-    TRICOLOR = "tricolor",
-}
-
-enum EShading {
-    BINARY = "binary",
-    GREYSCALE = "greyscale",
-    COLORSCALE = "colorscale",
-}
 
 const updateParametersVisibility = () => {
     const map = Parameters.parametersMap;
@@ -232,9 +211,5 @@ Page.FileControl.addDownloadObserver(controlId.IMAGE_DOWNLOAD, () => {
 });
 
 export {
-    EDisplayMode,
-    EInitialState,
-    EParametersMap,
-    EShading,
     Parameters,
 };

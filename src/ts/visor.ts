@@ -1,5 +1,6 @@
 import { Engine } from "./engine";
-import { EParametersMap, Parameters } from "./parameters";
+import { EParametersMap } from "./enums";
+import { Parameters } from "./parameters";
 
 import "./page-interface-generated";
 
