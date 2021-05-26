@@ -25,8 +25,7 @@ vec4 encode(vec2 decoded) {
 float sampleTexture(const sampler2D texture) {
     vec4 sample = texture2D(texture, vSamplingPosition);
     vec2 values = decode(sample);
-
-    return step(0.2, values.y);
+    return values.y;
 }
 
 void main() {
@@ -34,5 +33,6 @@ void main() {
     float valueGreen = sampleTexture(uTextureGreen);
     float valueBlue = sampleTexture(uTextureBlue);
 
-    gl_FragColor = vec4(vec3(valueRed, valueGreen, valueBlue), 1);
+    vec3 color = step(0.2, vec3(valueRed, valueGreen, valueBlue));
+    gl_FragColor = vec4(color, 1);
 }

@@ -1,6 +1,7 @@
 precision mediump float;
 
-uniform sampler2D uTexture;varying vec2 vSamplingPosition; // in [0,1]^2/* Decodes a float value (16 bits in [0,1])
+uniform sampler2D uTexture;
+uniform sampler2D uRamp;varying vec2 vSamplingPosition; // in [0,1]^2/* Decodes a float value (16 bits in [0,1])
  * from a 2D value (2x8bits in [0,1]x[0,1]) */
 float decode16bit(vec2 v) {
     return dot(v, vec2(255.0 / 256.0, 1.0 / 256.0));
@@ -27,8 +28,8 @@ float sampleTexture(const sampler2D texture) {
 }
 
 void main() {
-    float value = step(0.2, sampleTexture(uTexture));
+    float value = sampleTexture(uTexture);
 
-    vec3 color = vec3(step(0.2, value));
+    vec3 color = texture2D(uRamp, vec2(value, 0)).rgb;
     gl_FragColor = vec4(color, 1);
 }

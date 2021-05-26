@@ -1,12 +1,13 @@
 precision mediump float;
 
 uniform sampler2D uTexture;
+uniform sampler2D uRamp;
 
 #include "display/_compute-displayed-value.frag"
 
 void main() {
-    float value = step(0.2, sampleTexture(uTexture));
+    float value = sampleTexture(uTexture);
 
-    vec3 color = vec3(step(0.2, value));
+    vec3 color = texture2D(uRamp, vec2(value, 0)).rgb;
     gl_FragColor = vec4(color, 1);
 }

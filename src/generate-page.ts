@@ -193,6 +193,27 @@ const data = {
                     ]
                 },
                 {
+                    type: Demopage.supportedControls.Tabs,
+                    title: "Shading",
+                    id: "shading-tabs-id",
+                    unique: true,
+                    options: [
+                        {
+                            value: "binary",
+                            label: "Binary",
+                            checked: true,
+                        },
+                        {
+                            value: "greyscale",
+                            label: "Greyscale",
+                        },
+                        {
+                            value: "colorscale",
+                            label: "Colorscale", 
+                        }
+                    ]
+                },
+                {
                     type: Demopage.supportedControls.Range,
                     title: "Blur",
                     id: "blur-range-id",

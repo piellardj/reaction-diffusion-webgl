@@ -44,7 +44,7 @@ function downsizeImageIfNeeded(image: HTMLImageElement): ImageData {
 Parameters.imageUploadObservers.push((image: HTMLImageElement) => {
     currentImageData = downsizeImageIfNeeded(image);
     if (currentTexture !== null) {
-        currentTexture.uploadToGPU(currentImageData);
+        currentTexture.uploadDataToGPU(currentImageData);
     }
 });
 

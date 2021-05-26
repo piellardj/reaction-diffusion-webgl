@@ -11,5 +11,6 @@ void main() {
     float valueGreen = sampleTexture(uTextureGreen);
     float valueBlue = sampleTexture(uTextureBlue);
 
-    gl_FragColor = vec4(vec3(valueRed, valueGreen, valueBlue), 1);
+    vec3 color = step(0.2, vec3(valueRed, valueGreen, valueBlue));
+    gl_FragColor = vec4(color, 1);
 }

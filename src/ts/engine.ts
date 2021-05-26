@@ -2,10 +2,11 @@ import { gl } from "./gl-utils/gl-canvas";
 import { Shader } from "./gl-utils/shader";
 import * as ShaderManager from "./gl-utils/shader-manager";
 import { VBO } from "./gl-utils/vbo";
-import { EDisplayMode, EInitialState, EParametersMap, Parameters } from "./parameters";
+import { EDisplayMode, EInitialState, EParametersMap, EShading, Parameters } from "./parameters";
 import * as InputImage from "./input-image";
 import { RenderToTextureSwapable } from "./texture/render-to-texture-swapable";
 import * as Loader from "./loader";
+import { ImageTexture } from "./texture/image-texture";
 
 
 class Engine {
@@ -16,6 +17,7 @@ class Engine {
 
     private displayMonochromeShader: Shader;
     private displayTricolorShader: Shader;
+    private displayRampShader: Shader;
 
     private updateUniformShader: Shader;
     private updateMapShader: Shader;
@@ -26,6 +28,9 @@ class Engine {
     private brushDisplayShader: Shader;
 
     private readonly squareVBO: VBO;
+
+    private readonly greyscaleTexture: ImageTexture;
+    private readonly colorscaleTexture: ImageTexture;
 
     // first one is used for monochrome or red
     // second one is used for green
@@ -39,6 +44,12 @@ class Engine {
     public constructor() {
         this.squareVBO = VBO.createQuad(gl, -1, -1, +1, +1);
 
+        this.greyscaleTexture = new ImageTexture();
+        this.greyscaleTexture.loadFromUrl("./resources/greyscale.png");
+
+        this.colorscaleTexture = new ImageTexture();
+        this.colorscaleTexture.loadFromUrl("./resources/colorscale.png");
+
         this.internalTextures = [
             new RenderToTextureSwapable(),
             new RenderToTextureSwapable(),
@@ -51,6 +62,8 @@ class Engine {
 
         this.asyncLoadShader("display-monochrome", "fullscreen.vert", "display/display-monochrome.frag", (shader: Shader) => { this.displayMonochromeShader = shader; });
         this.asyncLoadShader("display-tricolor", "fullscreen.vert", "display/display-tricolor.frag", (shader: Shader) => { this.displayTricolorShader = shader; });
+        this.asyncLoadShader("display-tricolor", "fullscreen.vert", "display/display-ramp.frag", (shader: Shader) => { this.displayRampShader = shader; });
+
         this.asyncLoadShader("update-uniform", "fullscreen.vert", "update/update-uniform.frag", (shader: Shader) => { this.updateUniformShader = shader; });
         this.asyncLoadShader("update-map", "fullscreen.vert", "update/update-map.frag", (shader: Shader) => { this.updateMapShader = shader; },
             {
@@ -60,6 +73,7 @@ class Engine {
                 B_KILLING_MAX: Engine.B_KILLING_MAX.toFixed(5),
             });
         this.asyncLoadShader("update-image", "fullscreen.vert", "update/update-map-image.frag", (shader: Shader) => { this.updateImageMapShader = shader; });
+
         this.asyncLoadShader("reset", "fullscreen.vert", "update/reset.frag", (shader: Shader) => { this.resetShader = shader; });
         this.asyncLoadShader("brush-apply", "update/brush.vert", "update/brush-apply.frag", (shader: Shader) => { this.brushApplyShader = shader; });
         this.asyncLoadShader("brush-display", "update/brush.vert", "update/brush-display.frag", (shader: Shader) => { this.brushDisplayShader = shader; });
@@ -174,9 +188,23 @@ class Engine {
 
         const displayMode = Parameters.displayMode;
         if (displayMode === EDisplayMode.MONOCHROME) {
-            if (this.displayMonochromeShader) {
-                this.displayMonochromeShader.u["uTexture"].value = this.internalTextures[0].current;
-                shader = this.displayMonochromeShader;
+            const shading = Parameters.shading;
+            if (shading === EShading.BINARY) {
+                if (this.displayMonochromeShader) {
+                    this.displayMonochromeShader.u["uTexture"].value = this.internalTextures[0].current;
+                    shader = this.displayMonochromeShader;
+                }
+            } else {
+                if (this.displayRampShader) {
+                    this.displayRampShader.u["uTexture"].value = this.internalTextures[0].current;
+
+                    if (shading === EShading.GREYSCALE) {
+                        this.displayRampShader.u["uRamp"].value = this.greyscaleTexture.id;
+                    } else {
+                        this.displayRampShader.u["uRamp"].value = this.colorscaleTexture.id;
+                    }
+                    shader = this.displayRampShader;
+                }
             }
         } else if (displayMode === EDisplayMode.TRICOLOR) {
             if (this.displayTricolorShader) {

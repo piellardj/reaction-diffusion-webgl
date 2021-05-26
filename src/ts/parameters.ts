@@ -22,6 +22,7 @@ const controlId = {
     RESET_BUTTON: "reset-button-id",
 
     DISPLAY_MODE_TABS: "display-mode-tabs-id",
+    SHADING_TABS: "shading-tabs-id",
     BLUR_RANGE: "blur-range-id",
     INDICATORS_CHECKBOX: "indicators-checkbox-id",
 
@@ -55,8 +56,15 @@ enum EDisplayMode {
     TRICOLOR = "tricolor",
 }
 
+enum EShading {
+    BINARY = "binary",
+    GREYSCALE = "greyscale",
+    COLORSCALE = "colorscale",
+}
+
 const updateParametersVisibility = () => {
     const map = Parameters.parametersMap;
+    const displayMode = Parameters.displayMode;
     Page.Controls.setVisibility(controlId.A_FEEDING_RANGE, map !== EParametersMap.IMAGE);
     Page.Controls.setVisibility(controlId.B_KILLING_RANGE, map !== EParametersMap.IMAGE);
     Page.Controls.setVisibility(controlId.PICK_VALUES_BUTTON, map !== EParametersMap.IMAGE);
@@ -66,6 +74,7 @@ const updateParametersVisibility = () => {
     Page.Controls.setVisibility(controlId.B_DIFFUSION_RANGE, map !== EParametersMap.IMAGE);
     Page.Controls.setVisibility(controlId.INPUT_IMAGE_UPLOAD, map === EParametersMap.IMAGE);
     Page.Controls.setVisibility(controlId.DISPLAY_MODE_TABS, map === EParametersMap.IMAGE);
+    Page.Controls.setVisibility(controlId.SHADING_TABS, displayMode === EDisplayMode.MONOCHROME);
 };
 
 abstract class Parameters {
@@ -136,6 +145,10 @@ abstract class Parameters {
             return EDisplayMode.MONOCHROME;
         }
     }
+
+    public static get shading(): EShading {
+        return Page.Tabs.getValues(controlId.SHADING_TABS)[0] as EShading;
+    }
 }
 
 const callCanvasResizeObservers = () => { callObservers(Parameters.canvasResizeObservers); };
@@ -152,6 +165,7 @@ Page.Tabs.addObserver(controlId.PARAMETERS_MAP_TABS, () => {
     isInValuePickingMode = false;
     updateParametersVisibility();
 });
+Page.Tabs.addObserver(controlId.DISPLAY_MODE_TABS, updateParametersVisibility);
 updateParametersVisibility();
 
 const updateIndicatorsVisibility = () => {
@@ -217,5 +231,6 @@ export {
     EDisplayMode,
     EInitialState,
     EParametersMap,
+    EShading,
     Parameters,
 };
