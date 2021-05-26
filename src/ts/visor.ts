@@ -43,8 +43,8 @@ class Visor {
         const isVisible = (Parameters.parametersMap === EParametersMap.VALUE_PICKING) && Visor.isInRange(0, 1, mousePosition[0]) && Visor.isInRange(0, 1, mousePosition[1]);
 
         if (isVisible) {
-            this.horizontalLine.legendValue.textContent = Visor.toString(Visor.aimedFeedA(mousePosition), 5);
-            this.verticalLine.legendValue.textContent = Visor.toString(Visor.aimedKillB(mousePosition), 5);
+            this.horizontalLine.legendValue.textContent = Visor.toString(Visor.aimedKillB(mousePosition), 5);
+            this.verticalLine.legendValue.textContent = Visor.toString(Visor.aimedFeedA(mousePosition), 5);
 
             const canvasSize = Page.Canvas.getSize();
             const hPixel = Math.round(mousePosition[0] * canvasSize[0]);
