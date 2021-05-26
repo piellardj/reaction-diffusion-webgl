@@ -52,13 +52,13 @@ function main(): void {
 
         if (needToAdjustCanvasSize) {
             GLCanvas.adjustSize(false);
-            gl.viewport(0, 0, canvas.width, canvas.width);
-            engine.initialize(canvas.width, canvas.width);
+            gl.viewport(0, 0, canvas.width, canvas.height);
+            engine.initialize(canvas.width, canvas.height);
             needToAdjustCanvasSize = false;
         }
 
         if (needToReset) {
-            engine.initialize(canvas.width, canvas.width);
+            engine.initialize(canvas.width, canvas.height);
             needToReset = false;
         }
 
