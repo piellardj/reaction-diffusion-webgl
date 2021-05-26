@@ -55,6 +55,43 @@ const data = {
                     ]
                 },
                 {
+                    type: Demopage.supportedControls.Picker,
+                    title: "Preset",
+                    id: "presets-fixed-picker-id",
+                    placeholder: "Custom",
+                    options: [
+                        {
+                            value: "0",
+                            label: "Tiny waves",
+                            checked: true,
+                        },
+                        {
+                            value: "1",
+                            label: "Lines",
+                        },
+                        {
+                            value: "2",
+                            label: "Orthogonal",
+                        },
+                        {
+                            value: "3",
+                            label: "Shimmer",
+                        },
+                        {
+                            value: "4",
+                            label: "Geometric",
+                        },
+                        {
+                            value: "5",
+                            label: "Holes",
+                        },
+                        {
+                            value: "6",
+                            label: "Epilepsy",
+                        },
+                    ]
+                },
+                {
                     type: Demopage.supportedControls.Range,
                     title: "Patterns scale",
                     id: "pattern-scale-range-id",

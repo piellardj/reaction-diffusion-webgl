@@ -1,5 +1,6 @@
 import { EDisplayMode, EInitialState, EParametersMap, EShading } from "./enums";
 import * as Loader from "./loader";
+import { Presets } from "./presets";
 
 import "./page-interface-generated";
 
@@ -7,6 +8,7 @@ import "./page-interface-generated";
 /* === IDs ============================================================ */
 const controlId = {
     PARAMETERS_MAP_TABS: "map-tabs-id",
+    PRESET_PICKER: "presets-fixed-picker-id",
     INPUT_IMAGE_UPLOAD: "input-image-upload-button",
     PATTERNS_SCALE: "pattern-scale-range-id",
     A_FEEDING_RANGE: "A-feeding-range-id",
@@ -45,6 +47,7 @@ let isInValuePickingMode = false;
 const updateParametersVisibility = () => {
     const map = Parameters.parametersMap;
     const displayMode = Parameters.displayMode;
+    Page.Controls.setVisibility(controlId.PRESET_PICKER, map !== EParametersMap.IMAGE);
     Page.Controls.setVisibility(controlId.A_FEEDING_RANGE, map !== EParametersMap.IMAGE);
     Page.Controls.setVisibility(controlId.B_KILLING_RANGE, map !== EParametersMap.IMAGE);
     Page.Controls.setVisibility(controlId.PICK_VALUES_BUTTON, map !== EParametersMap.IMAGE);
@@ -56,6 +59,18 @@ const updateParametersVisibility = () => {
     Page.Controls.setVisibility(controlId.DISPLAY_MODE_TABS, map === EParametersMap.IMAGE);
     Page.Controls.setVisibility(controlId.SHADING_TABS, displayMode === EDisplayMode.MONOCHROME);
 };
+
+function clearPreset(): void {
+    Page.Picker.setValue(controlId.PRESET_PICKER, null);
+}
+Page.Range.addObserver(controlId.A_FEEDING_RANGE, clearPreset);
+Page.Range.addObserver(controlId.A_DIFFUSION_RANGE, clearPreset);
+Page.Range.addObserver(controlId.B_KILLING_RANGE, clearPreset);
+Page.Range.addObserver(controlId.B_DIFFUSION_RANGE, clearPreset);
+// Page.Range.addObserver(controlId.SPEED_RANGE, clearPreset);
+// Page.Tabs.addObserver(controlId.INITIAL_STATE_TABS, clearPreset);
+// Page.Tabs.addObserver(controlId.SHADING_TABS, clearPreset);
+// Page.Range.addObserver(controlId.ZOOM_RANGE, clearPreset);
 
 abstract class Parameters {
     public static readonly imageUploadObservers: ImageUploadObserver[] = [];
@@ -84,6 +99,7 @@ abstract class Parameters {
     }
     public static set AFeedingRate(value: number) {
         Page.Range.setValue(controlId.A_FEEDING_RANGE, value, true);
+        clearPreset();
     }
     public static get ADiffusionRate(): number {
         return Page.Range.getValue(controlId.A_DIFFUSION_RANGE);
@@ -93,6 +109,7 @@ abstract class Parameters {
     }
     public static set BKillingRate(value: number) {
         Page.Range.setValue(controlId.B_KILLING_RANGE, value, true);
+        clearPreset();
     }
     public static get BDIffusionRate(): number {
         return Page.Range.getValue(controlId.B_DIFFUSION_RANGE);
@@ -138,6 +155,7 @@ const callCanvasResizeObservers = () => { callObservers(Parameters.canvasResizeO
 Page.Canvas.Observers.canvasResize.push(callCanvasResizeObservers);
 
 const callResetObservers = () => { callObservers(Parameters.resetObservers); };
+Page.Picker.addObserver(controlId.PRESET_PICKER, callResetObservers);
 Page.Button.addObserver(controlId.RESET_BUTTON, callResetObservers);
 Page.Tabs.addObserver(controlId.PARAMETERS_MAP_TABS, callResetObservers);
 Page.Tabs.addObserver(controlId.DISPLAY_MODE_TABS, callResetObservers);
@@ -209,6 +227,26 @@ Page.FileControl.addDownloadObserver(controlId.IMAGE_DOWNLOAD, () => {
     callObservers(Parameters.imageDownloadObservers);
     callResetObservers();
 });
+
+function applyCurrentPreset(): void {
+    if (Parameters.parametersMap === EParametersMap.UNIFORM) {
+        const selectedPresetId = Page.Picker.getValue(controlId.PRESET_PICKER);
+        const preset = Presets[selectedPresetId];
+        if (preset) {
+            Page.Range.setValue(controlId.A_FEEDING_RANGE, preset.aFeeding);
+            Page.Range.setValue(controlId.A_DIFFUSION_RANGE, preset.aDiffuse);
+            Page.Range.setValue(controlId.B_KILLING_RANGE, preset.bKilling);
+            Page.Range.setValue(controlId.B_DIFFUSION_RANGE, preset.bDiffuse);
+            Page.Range.setValue(controlId.SPEED_RANGE, preset.speed);
+            Page.Range.setValue(controlId.ZOOM_RANGE, preset.zoom);
+            Page.Tabs.setValues(controlId.INITIAL_STATE_TABS, [preset.initialState]);
+            Page.Tabs.setValues(controlId.SHADING_TABS, [preset.shading]);
+        }
+    }
+}
+Page.Picker.addObserver(controlId.PRESET_PICKER, applyCurrentPreset);
+Page.Tabs.addObserver(controlId.PARAMETERS_MAP_TABS, applyCurrentPreset);
+applyCurrentPreset();
 
 export {
     Parameters,
