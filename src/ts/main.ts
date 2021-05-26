@@ -59,8 +59,7 @@ function main(): void {
         }
 
         if (needToReset) {
-            const canvasSize = Page.Canvas.getSize();
-            engine.initialize(canvasSize[0], canvasSize[1]);
+            engine.initialize(canvas.width, canvas.width);
             needToReset = false;
         }
 
