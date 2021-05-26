@@ -10,7 +10,11 @@ See it live [here](https://piellardj.github.io/reaction-diffusion-webgl/).
 
 ![Color mode: joconde](src/readme/joconde.png)
 
-![Random result 1](src/readme/uniform_1.png)
+![Illustration 1](src/readme/preview_3.png)
+
+![Illustration 2](src/readme/uniform_1.png)
+
+![Illustration 3](src/readme/preview_2.png)
 
 https://user-images.githubusercontent.com/22922087/119693778-e5600800-be4c-11eb-978f-7387cfce0405.mp4
 
