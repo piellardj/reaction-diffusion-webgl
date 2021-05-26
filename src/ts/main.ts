@@ -1,12 +1,13 @@
+import { Engine } from "./engine";
+import * as FPSIndicator from "./fps-indicator";
+
 import * as GLCanvas from "./gl-utils/gl-canvas";
 import { gl } from "./gl-utils/gl-canvas";
 
-import * as FPSIndicator from "./fps-indicator";
 import { Parameters } from "./parameters";
+import { Visor } from "./visor";
 
 import "./page-interface-generated";
-import { Engine } from "./engine";
-import { Visor } from "./visor";
 
 
 function main(): void {

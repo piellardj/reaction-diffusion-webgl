@@ -1,6 +1,7 @@
 import { gl } from "../gl-utils/gl-canvas";
 import * as Loader from "../loader";
 
+
 const defaultImageData: ImageData = {
     data: new Uint8ClampedArray([128, 128, 128, 128]),
     width: 1,

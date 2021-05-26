@@ -1,5 +1,6 @@
 import { RenderToTexture } from "./render-to-texture";
 
+
 class RenderToTextureSwapable {
     private previousTexture: RenderToTexture;
     private currentTexture: RenderToTexture;

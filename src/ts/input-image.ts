@@ -1,6 +1,7 @@
 import { Parameters } from "./parameters";
 import { ImageTexture } from "./texture/image-texture";
 
+
 const maxResolution = 512;
 const hiddenCanvas = document.createElement("canvas");
 const hiddenCanvasContext = hiddenCanvas.getContext("2d");

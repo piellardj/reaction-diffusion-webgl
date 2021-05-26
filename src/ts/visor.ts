@@ -1,6 +1,8 @@
 import { Engine } from "./engine";
-import "./page-interface-generated";
 import { EParametersMap, Parameters } from "./parameters";
+
+import "./page-interface-generated";
+
 
 enum EBarDirection {
     HORIZONTAL = "horizontal",

@@ -2,11 +2,11 @@ import { gl } from "./gl-utils/gl-canvas";
 import { Shader } from "./gl-utils/shader";
 import * as ShaderManager from "./gl-utils/shader-manager";
 import { VBO } from "./gl-utils/vbo";
-import { EDisplayMode, EInitialState, EParametersMap, EShading, Parameters } from "./parameters";
 import * as InputImage from "./input-image";
-import { RenderToTextureSwapable } from "./texture/render-to-texture-swapable";
 import * as Loader from "./loader";
+import { EDisplayMode, EInitialState, EParametersMap, EShading, Parameters } from "./parameters";
 import { ImageTexture } from "./texture/image-texture";
+import { RenderToTextureSwapable } from "./texture/render-to-texture-swapable";
 
 
 class Engine {
@@ -308,4 +308,3 @@ class Engine {
 export {
     Engine,
 };
-
