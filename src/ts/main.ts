@@ -23,6 +23,18 @@ function main(): void {
     gl.disable(gl.CULL_FACE);
     gl.disable(gl.BLEND);
 
+    function updateBlur(): void {
+        const canvas = Page.Canvas.getCanvas();
+        const blur = Parameters.blur;
+        if (blur <= 0) {
+            canvas.style.filter = "";
+        } else {
+            canvas.style.filter = `blur(${blur}px)`;
+        }
+    }
+    Parameters.blurChangeObservers.push(updateBlur);
+    updateBlur();
+
     let needToAdjustCanvasSize = true;
     Parameters.canvasResizeObservers.push(() => { needToAdjustCanvasSize = true; });
 

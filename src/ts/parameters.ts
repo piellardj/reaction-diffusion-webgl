@@ -22,6 +22,7 @@ const controlId = {
     RESET_BUTTON: "reset-button-id",
 
     DISPLAY_MODE_TABS: "display-mode-tabs-id",
+    BLUR_RANGE: "blur-range-id",
     INDICATORS_CHECKBOX: "indicators-checkbox-id",
 
     IMAGE_DOWNLOAD: "image-download-id",
@@ -72,6 +73,7 @@ abstract class Parameters {
     public static readonly imageDownloadObservers: Observer[] = [];
     public static readonly canvasResizeObservers: Observer[] = [];
     public static readonly resetObservers: Observer[] = [];
+    public static readonly blurChangeObservers: Observer[] = [];
 
     public static get parametersMap(): EParametersMap {
         if (isInValuePickingMode) {
@@ -123,6 +125,10 @@ abstract class Parameters {
         return Page.Tabs.getValues(controlId.INITIAL_STATE_TABS)[0] as EInitialState;
     }
 
+    public static get blur(): number {
+        return Page.Range.getValue(controlId.BLUR_RANGE);
+    }
+
     public static get displayMode(): EDisplayMode {
         if (Parameters.parametersMap === EParametersMap.IMAGE) {
             return Page.Tabs.getValues(controlId.DISPLAY_MODE_TABS)[0] as EDisplayMode;
@@ -166,6 +172,10 @@ Page.Button.addObserver(controlId.PICK_VALUES_BUTTON, () => {
     isInValuePickingMode = true;
     updateParametersVisibility();
     callResetObservers();
+});
+
+Page.Range.addObserver(controlId.BLUR_RANGE, () => {
+    callObservers(Parameters.blurChangeObservers);
 });
 
 Page.FileControl.addUploadObserver(controlId.INPUT_IMAGE_UPLOAD, (filesList: FileList) => {

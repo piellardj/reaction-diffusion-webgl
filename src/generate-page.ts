@@ -193,6 +193,15 @@ const data = {
                     ]
                 },
                 {
+                    type: Demopage.supportedControls.Range,
+                    title: "Blur",
+                    id: "blur-range-id",
+                    min: 0,
+                    max: 10,
+                    value: 0,
+                    step: 1
+                },
+                {
                     type: Demopage.supportedControls.Checkbox,
                     title: "Indicators",
                     id: "indicators-checkbox-id",
