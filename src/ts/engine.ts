@@ -4,7 +4,7 @@ import * as ShaderManager from "./gl-utils/shader-manager";
 import { VBO } from "./gl-utils/vbo";
 import { EDisplayMode, EInitialState, EParametersMap, Parameters } from "./parameters";
 import * as InputImage from "./input-image";
-import { RenderToTextureSwapable } from "./render-to-texture-swapable";
+import { RenderToTextureSwapable } from "./texture/render-to-texture-swapable";
 import * as Loader from "./loader";
 
 

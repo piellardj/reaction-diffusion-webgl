@@ -1,4 +1,4 @@
-import { gl } from "./gl-utils/gl-canvas";
+import { gl } from "../gl-utils/gl-canvas";
 
 
 class RenderToTexture {
