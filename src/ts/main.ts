@@ -23,17 +23,10 @@ function main(): void {
     gl.disable(gl.CULL_FACE);
     gl.disable(gl.BLEND);
 
-    function updateBlur(): void {
-        const canvas = Page.Canvas.getCanvas();
-        const blur = Parameters.blur;
-        if (blur <= 0) {
-            canvas.style.filter = "";
-        } else {
-            canvas.style.filter = `blur(${blur}px)`;
-        }
-    }
-    Parameters.blurChangeObservers.push(updateBlur);
-    updateBlur();
+    const canvas = Page.Canvas.getCanvas();
+
+    Parameters.blurChangeObservers.push(() => { updateBlur(canvas); });
+    updateBlur(canvas);
 
     let needToAdjustCanvasSize = true;
     Parameters.canvasResizeObservers.push(() => { needToAdjustCanvasSize = true; });
@@ -53,7 +46,7 @@ function main(): void {
         if (needToDownload) {
             // redraw before resizing the canvas because the download pane might open, which changes the canvas size
             engine.drawToCanvas(); // redraw because preserveDrawingBuffer is false
-            download();
+            download(canvas);
             needToDownload = false;
         }
 
@@ -85,8 +78,16 @@ function main(): void {
     mainLoop();
 }
 
-function download(): void {
-    const canvas = Page.Canvas.getCanvas();
+function updateBlur(canvas: HTMLElement): void {
+    const blur = Parameters.blur;
+    if (blur <= 0) {
+        canvas.style.filter = "";
+    } else {
+        canvas.style.filter = `blur(${blur}px)`;
+    }
+}
+
+function download(canvas: HTMLCanvasElement): void {
     const name = "reaction-diffusion.png";
 
     if ((canvas as any).msToBlob) { // for IE
