@@ -83,12 +83,14 @@ class Visor {
 
     private static aimedFeedA(mousePos: number[]): number {
         const y = Visor.clamp(0, 1, 1 - mousePos[1]);
-        return Visor.interpolate(Engine.A_FEEDING_MIN, Engine.A_FEEDING_MAX, y);
+        const adjustedY = 0.5 + (y - 0.5) / Parameters.zoom;
+        return Visor.interpolate(Engine.A_FEEDING_MIN, Engine.A_FEEDING_MAX, adjustedY);
     }
 
     private static aimedKillB(mousePos: number[]): number {
         const x = Visor.clamp(0, 1, mousePos[0]);
-        return Visor.interpolate(Engine.B_KILLING_MIN, Engine.B_KILLING_MAX, x);
+        const adjustedX = 0.5 + (x - 0.5) / Parameters.zoom;
+        return Visor.interpolate(Engine.B_KILLING_MIN, Engine.B_KILLING_MAX, adjustedX);
     }
 
     private static createBar(direction: EBarDirection, label: string): IBar {
