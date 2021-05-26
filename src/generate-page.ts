@@ -215,6 +215,15 @@ const data = {
                 },
                 {
                     type: Demopage.supportedControls.Range,
+                    title: "Zoom",
+                    id: "zoom-range-id",
+                    min: 1,
+                    max: 5,
+                    value: 1,
+                    step: 0.05
+                },
+                {
+                    type: Demopage.supportedControls.Range,
                     title: "Blur",
                     id: "blur-range-id",
                     min: 0,

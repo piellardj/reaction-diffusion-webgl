@@ -216,6 +216,7 @@ class Engine {
         }
 
         if (shader) {
+            shader.u["uScaling"].value = 1 / Parameters.zoom;
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             shader.use();
             shader.bindUniformsAndAttributes();
@@ -263,8 +264,9 @@ class Engine {
                 const brushSize = [size / this.internalTextures[0].width, size / this.internalTextures[1].height];
 
                 if (this.brushApplyShader) {
-                    this.brushApplyShader.u["uPosition"].value = position;
-                    this.brushApplyShader.u["uSize"].value = brushSize;
+                    const zoom = Parameters.zoom;
+                    this.brushApplyShader.u["uPosition"].value = [0.5 + (position[0] - 0.5) / zoom, 0.5 + (position[1] - 0.5) / zoom];
+                    this.brushApplyShader.u["uSize"].value = [brushSize[0] / zoom, brushSize[1] / zoom];
                 }
                 if (this.brushDisplayShader) {
                     this.brushDisplayShader.u["uPosition"].value = position;

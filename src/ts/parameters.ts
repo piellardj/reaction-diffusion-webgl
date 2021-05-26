@@ -23,6 +23,7 @@ const controlId = {
 
     DISPLAY_MODE_TABS: "display-mode-tabs-id",
     SHADING_TABS: "shading-tabs-id",
+    ZOOM_RANGE: "zoom-range-id",
     BLUR_RANGE: "blur-range-id",
     INDICATORS_CHECKBOX: "indicators-checkbox-id",
 
@@ -134,6 +135,9 @@ abstract class Parameters {
         return Page.Tabs.getValues(controlId.INITIAL_STATE_TABS)[0] as EInitialState;
     }
 
+    public static get zoom(): number {
+        return Page.Range.getValue(controlId.ZOOM_RANGE);
+    }
     public static get blur(): number {
         return Page.Range.getValue(controlId.BLUR_RANGE);
     }
