@@ -96,7 +96,8 @@ abstract class Parameters {
         return Page.Range.getValue(controlId.A_FEEDING_RANGE);
     }
     public static set AFeedingRate(value: number) {
-        Page.Range.setValue(controlId.A_FEEDING_RANGE, value, true);
+        Page.Range.setValue(controlId.A_FEEDING_RANGE, value);
+        Page.Range.storeState(controlId.A_FEEDING_RANGE);
         clearPreset();
     }
     public static get ADiffusionRate(): number {
@@ -106,7 +107,8 @@ abstract class Parameters {
         return Page.Range.getValue(controlId.B_KILLING_RANGE);
     }
     public static set BKillingRate(value: number) {
-        Page.Range.setValue(controlId.B_KILLING_RANGE, value, true);
+        Page.Range.setValue(controlId.B_KILLING_RANGE, value);
+        Page.Range.storeState(controlId.B_KILLING_RANGE);
         clearPreset();
     }
     public static get BDIffusionRate(): number {

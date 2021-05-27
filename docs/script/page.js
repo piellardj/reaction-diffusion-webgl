@@ -349,6 +349,10 @@ var Page;
                 Page.Helpers.URL.setQueryParameter(PREFIX, tabs.id, values);
             }
             Storage.storeState = storeState;
+            function clearStoredState(tabs) {
+                Page.Helpers.URL.removeQueryParameter(PREFIX, tabs.id);
+            }
+            Storage.clearStoredState = clearStoredState;
             function applyStoredState() {
                 Page.Helpers.URL.loopOnParameters(PREFIX, function (controlId, value) {
                     var values = value.split(SEPARATOR);
@@ -395,6 +399,16 @@ var Page;
             }
         }
         Tabs_1.setValues = setValues;
+        function storeState(tabsId) {
+            var tabs = Cache.getTabsById(tabsId);
+            Storage.storeState(tabs);
+        }
+        Tabs_1.storeState = storeState;
+        function clearStoredState(tabsIdd) {
+            var tabs = Cache.getTabsById(tabsIdd);
+            Storage.clearStoredState(tabs);
+        }
+        Tabs_1.clearStoredState = clearStoredState;
     })(Tabs = Page.Tabs || (Page.Tabs = {}));
 })(Page || (Page = {}));
 
@@ -419,13 +433,7 @@ var Page;
                 for (var i = 0; i < elements.length; i++) {
                     this.valueElements.push(elements[i]);
                 }
-                this.valuesListElement.style.opacity = "0";
-                this.valuesListElement.style.display = "block";
-                this.valuesListElement.style.width = "auto";
-                this.containerElement.style.width = this.valuesListElement.getBoundingClientRect().width + 30 + "px";
-                this.valuesListElement.style.width = "";
-                this.valuesListElement.style.display = "";
-                this.valuesListElement.style.opacity = "";
+                this.containerElement.style.width = this.computeMinimumWidth() + "px";
                 document.addEventListener("click", function (event) {
                     var clickedElement = event.target;
                     var isExpanded = _this.containerElement.classList.contains(Select.EXPANDED_CLASS);
@@ -484,6 +492,25 @@ var Page;
                     observer(this.value);
                 }
             };
+            Select.prototype.computeMinimumWidth = function () {
+                var result = 0;
+                this.valuesListElement.style.opacity = "0";
+                this.valuesListElement.style.width = "auto";
+                this.valuesListElement.style.fontWeight = "bold";
+                this.valuesListElement.style.display = "block";
+                var placeholderValue = document.createElement("div");
+                placeholderValue.classList.add("select-value");
+                placeholderValue.textContent = this.placeholder;
+                this.valuesListElement.appendChild(placeholderValue);
+                result = this.valuesListElement.getBoundingClientRect().width;
+                this.valuesListElement.removeChild(placeholderValue);
+                this.valuesListElement.style.display = "";
+                this.valuesListElement.style.fontWeight = "";
+                this.valuesListElement.style.width = "";
+                this.valuesListElement.style.opacity = "";
+                var MARGIN = 30;
+                return result + MARGIN;
+            };
             Select.EXPANDED_CLASS = "expanded";
             return Select;
         }());
@@ -518,6 +545,10 @@ var Page;
                 Page.Helpers.URL.setQueryParameter(PREFIX, select.id, select.value);
             }
             Storage.storeState = storeState;
+            function clearStoredState(select) {
+                Page.Helpers.URL.removeQueryParameter(PREFIX, select.id);
+            }
+            Storage.clearStoredState = clearStoredState;
             function applyStoredState() {
                 Page.Helpers.URL.loopOnParameters(PREFIX, function (controlId, value) {
                     var select = Cache.getSelectById(controlId);
@@ -547,15 +578,21 @@ var Page;
             return select.value;
         }
         Select_1.getValue = getValue;
-        function setValue(id, value, updateURLStorage) {
-            if (updateURLStorage === void 0) { updateURLStorage = false; }
+        function setValue(id, value) {
             var select = Cache.getSelectById(id);
             select.value = value;
-            if (updateURLStorage) {
-                Storage.storeState(select);
-            }
         }
         Select_1.setValue = setValue;
+        function storeState(id) {
+            var select = Cache.getSelectById(id);
+            Storage.storeState(select);
+        }
+        Select_1.storeState = storeState;
+        function clearStoredState(id) {
+            var select = Cache.getSelectById(id);
+            Storage.clearStoredState(select);
+        }
+        Select_1.clearStoredState = clearStoredState;
     })(Select = Page.Select || (Page.Select = {}));
 })(Page || (Page = {}));
 
@@ -692,6 +729,10 @@ var Page;
                 Page.Helpers.URL.setQueryParameter(PREFIX, range.id, valueAsString);
             }
             Storage.storeState = storeState;
+            function clearStoredState(range) {
+                Page.Helpers.URL.removeQueryParameter(PREFIX, range.id);
+            }
+            Storage.clearStoredState = clearStoredState;
             function applyStoredState() {
                 Page.Helpers.URL.loopOnParameters(PREFIX, function (controlId, value) {
                     var range = Cache.getRangeById(controlId);
@@ -751,17 +792,23 @@ var Page;
             return range.value;
         }
         Range_1.getValue = getValue;
-        function setValue(rangeId, value, updateUrlStorage) {
-            if (updateUrlStorage === void 0) { updateUrlStorage = false; }
+        function setValue(rangeId, value) {
             var range = Cache.getRangeById(rangeId);
             if (range) {
                 range.value = value;
-                if (updateUrlStorage) {
-                    Storage.storeState(range);
-                }
             }
         }
         Range_1.setValue = setValue;
+        function storeState(rangeId) {
+            var range = Cache.getRangeById(rangeId);
+            Storage.storeState(range);
+        }
+        Range_1.storeState = storeState;
+        function clearStoredState(rangeId) {
+            var range = Cache.getRangeById(rangeId);
+            Storage.clearStoredState(range);
+        }
+        Range_1.clearStoredState = clearStoredState;
     })(Range = Page.Range || (Page.Range = {}));
 })(Page || (Page = {}));
 
@@ -994,6 +1041,10 @@ var Page;
                 Page.Helpers.URL.setQueryParameter(PREFIX, checkbox.id, stateAsString);
             }
             Storage.storeState = storeState;
+            function clearStoredState(checkbox) {
+                Page.Helpers.URL.removeQueryParameter(PREFIX, checkbox.id);
+            }
+            Storage.clearStoredState = clearStoredState;
             function applyStoredState() {
                 Page.Helpers.URL.loopOnParameters(PREFIX, function (checkboxId, value) {
                     var checkbox = Cache.getCheckboxById(checkboxId);
@@ -1025,14 +1076,10 @@ var Page;
             return false;
         }
         Checkbox_1.addObserver = addObserver;
-        function setChecked(checkboxId, value, updateURLStorage) {
-            if (updateURLStorage === void 0) { updateURLStorage = false; }
+        function setChecked(checkboxId, value) {
             var checkbox = Cache.getCheckboxById(checkboxId);
             if (checkbox) {
                 checkbox.checked = value;
-                if (updateURLStorage) {
-                    Storage.storeState(checkbox);
-                }
             }
         }
         Checkbox_1.setChecked = setChecked;
@@ -1044,6 +1091,16 @@ var Page;
             return false;
         }
         Checkbox_1.isChecked = isChecked;
+        function storeState(checkboxId) {
+            var checkbox = Cache.getCheckboxById(checkboxId);
+            Storage.storeState(checkbox);
+        }
+        Checkbox_1.storeState = storeState;
+        function clearStoredState(checkboxId) {
+            var checkbox = Cache.getCheckboxById(checkboxId);
+            Storage.clearStoredState(checkbox);
+        }
+        Checkbox_1.clearStoredState = clearStoredState;
     })(Checkbox = Page.Checkbox || (Page.Checkbox = {}));
 })(Page || (Page = {}));
 
