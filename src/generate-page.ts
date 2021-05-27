@@ -146,11 +146,6 @@ const data = {
                     type: Demopage.supportedControls.Button,
                     id: "pick-values-button-id",
                     label: "Pick values"
-                },
-                {
-                    type: Demopage.supportedControls.Button,
-                    id: "reset-values-button-id",
-                    label: "Reset values"
                 }
             ]
         },
