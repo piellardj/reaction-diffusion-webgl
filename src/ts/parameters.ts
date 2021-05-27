@@ -8,7 +8,7 @@ import "./page-interface-generated";
 /* === IDs ============================================================ */
 const controlId = {
     PARAMETERS_MAP_TABS: "map-tabs-id",
-    PRESET_PICKER: "presets-fixed-picker-id",
+    PRESET_SELECT: "presets-fixed-select-id",
     INPUT_IMAGE_UPLOAD: "input-image-upload-button",
     PATTERNS_SCALE: "pattern-scale-range-id",
     A_FEEDING_RANGE: "A-feeding-range-id",
@@ -47,7 +47,7 @@ let isInValuePickingMode = false;
 const updateParametersVisibility = () => {
     const map = Parameters.parametersMap;
     const displayMode = Parameters.displayMode;
-    Page.Controls.setVisibility(controlId.PRESET_PICKER, map !== EParametersMap.IMAGE);
+    Page.Controls.setVisibility(controlId.PRESET_SELECT, map !== EParametersMap.IMAGE);
     Page.Controls.setVisibility(controlId.A_FEEDING_RANGE, map !== EParametersMap.IMAGE);
     Page.Controls.setVisibility(controlId.B_KILLING_RANGE, map !== EParametersMap.IMAGE);
     Page.Controls.setVisibility(controlId.PICK_VALUES_BUTTON, map !== EParametersMap.IMAGE);
@@ -61,7 +61,7 @@ const updateParametersVisibility = () => {
 };
 
 function clearPreset(): void {
-    Page.Picker.setValue(controlId.PRESET_PICKER, null);
+    Page.Select.setValue(controlId.PRESET_SELECT, null);
 }
 Page.Range.addObserver(controlId.A_FEEDING_RANGE, clearPreset);
 Page.Range.addObserver(controlId.A_DIFFUSION_RANGE, clearPreset);
@@ -155,7 +155,7 @@ const callCanvasResizeObservers = () => { callObservers(Parameters.canvasResizeO
 Page.Canvas.Observers.canvasResize.push(callCanvasResizeObservers);
 
 const callResetObservers = () => { callObservers(Parameters.resetObservers); };
-Page.Picker.addObserver(controlId.PRESET_PICKER, callResetObservers);
+Page.Select.addObserver(controlId.PRESET_SELECT, callResetObservers);
 Page.Button.addObserver(controlId.RESET_BUTTON, callResetObservers);
 Page.Tabs.addObserver(controlId.PARAMETERS_MAP_TABS, callResetObservers);
 Page.Tabs.addObserver(controlId.DISPLAY_MODE_TABS, callResetObservers);
@@ -230,7 +230,7 @@ Page.FileControl.addDownloadObserver(controlId.IMAGE_DOWNLOAD, () => {
 
 function applyCurrentPreset(): void {
     if (Parameters.parametersMap === EParametersMap.UNIFORM) {
-        const selectedPresetId = Page.Picker.getValue(controlId.PRESET_PICKER);
+        const selectedPresetId = Page.Select.getValue(controlId.PRESET_SELECT);
         const preset = Presets[selectedPresetId];
         if (preset) {
             Page.Range.setValue(controlId.A_FEEDING_RANGE, preset.aFeeding);
@@ -244,7 +244,7 @@ function applyCurrentPreset(): void {
         }
     }
 }
-Page.Picker.addObserver(controlId.PRESET_PICKER, applyCurrentPreset);
+Page.Select.addObserver(controlId.PRESET_SELECT, applyCurrentPreset);
 Page.Tabs.addObserver(controlId.PARAMETERS_MAP_TABS, applyCurrentPreset);
 applyCurrentPreset();
 

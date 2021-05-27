@@ -55,9 +55,9 @@ const data = {
                     ]
                 },
                 {
-                    type: Demopage.supportedControls.Picker,
+                    type: Demopage.supportedControls.Select,
                     title: "Preset",
-                    id: "presets-fixed-picker-id",
+                    id: "presets-fixed-select-id",
                     placeholder: "Custom",
                     options: [
                         {
