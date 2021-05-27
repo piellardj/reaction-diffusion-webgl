@@ -3,7 +3,7 @@ Reaction-diffusion is a model used to simulate the interaction of two chemical s
 
 This is a GPU implementation of the Gray Scott model. It exhibits natural-looking patterns, reminiscent of corals or some animal coats. Use the left mouse button to interact with the simulation.
 
-See it live [here](https://piellardj.github.io/reaction-diffusion-webgl/).
+See it live [here](https://piellardj.github.io/reaction-diffusion-webgl/?page%3Atabs%3Amap-tabs-id=uniform&page%3Aselect%3Apresets-fixed-select-id=0).
 
 ## Preview
 ![Black and white mode: cat](src/readme/cat.png)
