@@ -97,17 +97,10 @@ class Engine {
         this.handleBrush();
 
         if (this.initialized) {
-            // Limit update speed to have same speed at 144fps than at 60fps
-            const nbIterationsPerFrameAt60FPS = Parameters.speed;
-
-            const now = performance.now();
-            const timeSinceLastUpdate = (now - this.lastUpdateTimestamp);
-            const speedFactor = timeSinceLastUpdate * 60 / 1000;
-            const nbIterations = Math.min(nbIterationsPerFrameAt60FPS, Math.ceil(speedFactor * nbIterationsPerFrameAt60FPS));
+            const nbIterations = this.computeNbIterationsForThisFrame();
             if (nbIterations <= 0) {
                 return;
             }
-            this.lastUpdateTimestamp = now;
 
             const map = Parameters.parametersMap;
 
@@ -317,6 +310,21 @@ class Engine {
                 Page.Demopage.setErrorMessage(`${name}-shader-error`, `Failed to build '${name}' shader.`);
             }
         });
+    }
+
+    private computeNbIterationsForThisFrame(): number {
+        // Limit update speed to have same speed at 144fps than at 60fps
+        const nbIterationsPerFrameAt60FPS = Parameters.speed;
+
+        const now = performance.now();
+        const timeSinceLastUpdate = (now - this.lastUpdateTimestamp);
+        const speedFactor = timeSinceLastUpdate * 60 / 1000;
+        const nbIterations = Math.min(nbIterationsPerFrameAt60FPS, Math.ceil(speedFactor * nbIterationsPerFrameAt60FPS));
+        if (nbIterations <= 0) {
+            return -1;
+        }
+        this.lastUpdateTimestamp = now;
+        return nbIterations;
     }
 }
 
