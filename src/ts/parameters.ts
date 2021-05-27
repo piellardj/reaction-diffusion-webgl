@@ -244,7 +244,10 @@ function applyCurrentPreset(): void {
         }
     }
 }
-Page.Select.addObserver(controlId.PRESET_SELECT, applyCurrentPreset);
+Page.Select.addObserver(controlId.PRESET_SELECT, () => {
+    Parameters.exitValuePickingMode();
+    applyCurrentPreset();
+});
 Page.Tabs.addObserver(controlId.PARAMETERS_MAP_TABS, applyCurrentPreset);
 applyCurrentPreset();
 
