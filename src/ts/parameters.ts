@@ -242,6 +242,15 @@ function applyCurrentPreset(): void {
             Page.Range.setValue(controlId.ZOOM_RANGE, preset.zoom);
             Page.Tabs.setValues(controlId.INITIAL_STATE_TABS, [preset.initialState]);
             Page.Tabs.setValues(controlId.SHADING_TABS, [preset.shading]);
+
+            Page.Range.clearStoredState(controlId.A_FEEDING_RANGE);
+            Page.Range.clearStoredState(controlId.A_DIFFUSION_RANGE);
+            Page.Range.clearStoredState(controlId.B_KILLING_RANGE);
+            Page.Range.clearStoredState(controlId.B_DIFFUSION_RANGE);
+            Page.Range.clearStoredState(controlId.SPEED_RANGE);
+            Page.Range.clearStoredState(controlId.ZOOM_RANGE);
+            Page.Tabs.clearStoredState(controlId.INITIAL_STATE_TABS);
+            Page.Tabs.clearStoredState(controlId.SHADING_TABS);
         }
     }
 }
