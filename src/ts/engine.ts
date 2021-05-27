@@ -315,16 +315,20 @@ class Engine {
     private computeNbIterationsForThisFrame(): number {
         // Limit update speed to have same speed at 144fps than at 60fps
         const nbIterationsPerFrameAt60FPS = Parameters.speed;
+        const MAX_FPS = 60;
+        const MIN_FPS = 10;
 
         const now = performance.now();
-        const timeSinceLastUpdate = (now - this.lastUpdateTimestamp);
-        const speedFactor = timeSinceLastUpdate * 60 / 1000;
-        const nbIterations = Math.min(nbIterationsPerFrameAt60FPS, Math.ceil(speedFactor * nbIterationsPerFrameAt60FPS));
-        if (nbIterations <= 0) {
-            return -1;
-        }
+        const instantFPS = 1000 / (0.1 + now - this.lastUpdateTimestamp);
         this.lastUpdateTimestamp = now;
-        return nbIterations;
+
+        if (instantFPS > MAX_FPS) { // runs very fast, limit update speed to run with expected speed
+            return Math.ceil(MAX_FPS / instantFPS * nbIterationsPerFrameAt60FPS);
+        } else if (instantFPS < MIN_FPS) { // runs very slow, try to reduce the workload to avoid huge freezes
+            return Math.ceil(instantFPS / MIN_FPS * nbIterationsPerFrameAt60FPS);
+        }
+
+        return nbIterationsPerFrameAt60FPS;
     }
 }
 
