@@ -248,6 +248,9 @@ Page.Select.addObserver(controlId.PRESET_SELECT, applyCurrentPreset);
 Page.Tabs.addObserver(controlId.PARAMETERS_MAP_TABS, applyCurrentPreset);
 applyCurrentPreset();
 
+// add fake observer to prevent touch events from moving viewport on touch devices
+Page.Canvas.Observers.mouseDrag.push(() => { }); /* tslint:disable-line:no-empty */
+
 export {
     Parameters,
 };
