@@ -185,6 +185,14 @@ Page.Button.addObserver(controlId.RESET_VALUES_BUTTON, () => {
 Page.Button.addObserver(controlId.PICK_VALUES_BUTTON, () => {
     Page.Tabs.setValues(controlId.PARAMETERS_MAP_TABS, []);
     isInValuePickingMode = true;
+    Page.Range.setValue(controlId.A_DIFFUSION_RANGE, 0.2097);
+    Page.Range.setValue(controlId.B_DIFFUSION_RANGE, 0.1050);
+    Page.Range.setValue(controlId.ZOOM_RANGE, 1);
+    if (Parameters.speed < 30) {
+        Page.Range.setValue(controlId.SPEED_RANGE, 30);
+    }
+    clearPreset();
+
     updateParametersVisibility();
     callResetObservers();
 });
