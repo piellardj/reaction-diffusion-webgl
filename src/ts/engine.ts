@@ -38,6 +38,7 @@ class Engine {
     // thrid one is used for blue
     private readonly internalTextures: [RenderToTextureSwapable, RenderToTextureSwapable, RenderToTextureSwapable]; // used for monochrome or red
 
+    private lastUpdateTimestamp: number = 0;
     private initialized: boolean;
     private _iteration: number;
     private lastIterationUpdate: number;
@@ -96,7 +97,18 @@ class Engine {
         this.handleBrush();
 
         if (this.initialized) {
-            const nbIterations = Parameters.speed;
+            // Limit update speed to have same speed at 144fps than at 60fps
+            const nbIterationsPerFrameAt60FPS = Parameters.speed;
+
+            const now = performance.now();
+            const timeSinceLastUpdate = (now - this.lastUpdateTimestamp);
+            const speedFactor = timeSinceLastUpdate * 60 / 1000;
+            const nbIterations = Math.min(nbIterationsPerFrameAt60FPS, Math.ceil(speedFactor * nbIterationsPerFrameAt60FPS));
+            if (nbIterations <= 0) {
+                return;
+            }
+            this.lastUpdateTimestamp = now;
+
             const map = Parameters.parametersMap;
 
             if (map === EParametersMap.IMAGE) {
