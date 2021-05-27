@@ -7,7 +7,7 @@ const data = {
     title: "Reaction-diffusion",
     description: "Reaction-diffusion on GPU in WebGL",
     introduction: [
-        "Reaction-diffusion is a model used to simulate the interaction of two chemical substances 'A' and 'B'. 'A' transforms into 'B' when it is in contact with it. Additionally, a little 'A' is continuously injected, and a fraction of 'B' slowly destroys itself.",
+        "Reaction-diffusion is a model used to simulate the chemical reaction between two substances 'A' and 'B'. 'A' turns into 'B' when it is in contact with it. Additionally, a little 'A' is continuously injected, and a fraction of 'B' slowly destroys itself.",
         "This is a GPU implementation of the Gray Scott model. It exhibits natural-looking patterns, reminiscent of corals or some animal coats. Use the left mouse button to interact with the simulation.",
     ],
     githubProjectName: "reaction-diffusion-webgl",
