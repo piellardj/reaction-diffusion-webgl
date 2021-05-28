@@ -42,8 +42,9 @@ class Engine {
     // thrid one is used for blue
     private readonly internalTextures: [RenderToTextureSwapable, RenderToTextureSwapable, RenderToTextureSwapable]; // used for monochrome or red
 
-    private lastUpdateTimestamp: number = 0;
     private initialized: boolean;
+
+    private lastUpdateTimestamp: number = 0;
     private _iteration: number;
     private lastIterationUpdate: number;
 
@@ -95,6 +96,63 @@ class Engine {
 
     public reset(): void {
         this.initialized = false;
+    }
+
+    public drawToCanvas(): void {
+        gl.viewport(0, 0, this.targetWidth, this.targetHeight);
+
+        let shader: Shader;
+
+        const displayMode = Parameters.displayMode;
+        if (displayMode === EDisplayMode.MONOCHROME) {
+            const shading = Parameters.shading;
+            if (shading === EShading.BINARY) {
+                if (this.displayMonochromeShader) {
+                    this.displayMonochromeShader.u["uTexture"].value = this.internalTextures[0].current;
+                    shader = this.displayMonochromeShader;
+                }
+            } else {
+                if (this.displayRampShader) {
+                    this.displayRampShader.u["uTexture"].value = this.internalTextures[0].current;
+
+                    if (shading === EShading.GREYSCALE) {
+                        this.displayRampShader.u["uRamp"].value = this.greyscaleTexture.id;
+                    } else {
+                        this.displayRampShader.u["uRamp"].value = this.colorscaleTexture.id;
+                    }
+                    shader = this.displayRampShader;
+                }
+            }
+        } else if (displayMode === EDisplayMode.TRICOLOR) {
+            if (this.displayTricolorShader) {
+                this.displayTricolorShader.u["uTextureRed"].value = this.internalTextures[0].current;
+                this.displayTricolorShader.u["uTextureGreen"].value = this.internalTextures[1].current;
+                this.displayTricolorShader.u["uTextureBlue"].value = this.internalTextures[2].current;
+                shader = this.displayTricolorShader;
+            }
+        }
+
+        if (shader) {
+            const map = Parameters.parametersMap;
+            if (map === EParametersMap.IMAGE) {
+                const canvasAspectRatio = this.targetWidth / this.targetHeight;
+                const internalTextureAspectRatio = this.internalTextures[0].width / this.internalTextures[0].height;
+
+                if (canvasAspectRatio > internalTextureAspectRatio) {
+                    shader.u["uScaling"].value = [internalTextureAspectRatio / canvasAspectRatio, 1];
+                } else {
+                    shader.u["uScaling"].value = [1, canvasAspectRatio / internalTextureAspectRatio];
+                }
+            } else {
+                shader.u["uScaling"].value = [1, 1];
+            }
+            shader.u["uZoom"].value = Parameters.zoom;
+
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            shader.use();
+            shader.bindUniformsAndAttributes();
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        }
     }
 
     public update(): void {
@@ -176,78 +234,16 @@ class Engine {
         }
     }
 
-    public clearInternalTextures(): boolean {
-        if (this.resetShader) {
-            const pattern = Parameters.initialState;
-            this.resetShader.u["uPattern"].value = [pattern === EInitialState.BLANK, pattern === EInitialState.DISC, pattern === EInitialState.CIRCLE, 0];
+    private updateInternal(shader: Shader, nbIterations: number, texture: RenderToTextureSwapable): void {
+        for (let i = nbIterations; i > 0; i--) {
+            texture.swap();
 
-            this.resetShader.use();
-            this.resetShader.bindUniformsAndAttributes();
-
-            for (const texture of this.internalTextures) {
-                gl.bindFramebuffer(gl.FRAMEBUFFER, texture.currentFramebuffer);
-                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-            }
-            return true;
-        }
-        return false;
-    }
-
-    public drawToCanvas(): void {
-        gl.viewport(0, 0, this.targetWidth, this.targetHeight);
-
-        let shader: Shader;
-
-        const displayMode = Parameters.displayMode;
-        if (displayMode === EDisplayMode.MONOCHROME) {
-            const shading = Parameters.shading;
-            if (shading === EShading.BINARY) {
-                if (this.displayMonochromeShader) {
-                    this.displayMonochromeShader.u["uTexture"].value = this.internalTextures[0].current;
-                    shader = this.displayMonochromeShader;
-                }
-            } else {
-                if (this.displayRampShader) {
-                    this.displayRampShader.u["uTexture"].value = this.internalTextures[0].current;
-
-                    if (shading === EShading.GREYSCALE) {
-                        this.displayRampShader.u["uRamp"].value = this.greyscaleTexture.id;
-                    } else {
-                        this.displayRampShader.u["uRamp"].value = this.colorscaleTexture.id;
-                    }
-                    shader = this.displayRampShader;
-                }
-            }
-        } else if (displayMode === EDisplayMode.TRICOLOR) {
-            if (this.displayTricolorShader) {
-                this.displayTricolorShader.u["uTextureRed"].value = this.internalTextures[0].current;
-                this.displayTricolorShader.u["uTextureGreen"].value = this.internalTextures[1].current;
-                this.displayTricolorShader.u["uTextureBlue"].value = this.internalTextures[2].current;
-                shader = this.displayTricolorShader;
-            }
-        }
-
-        if (shader) {
-            const map = Parameters.parametersMap;
-            if (map === EParametersMap.IMAGE) {
-                const canvasAspectRatio = this.targetWidth / this.targetHeight;
-                const internalTextureAspectRatio = this.internalTextures[0].width / this.internalTextures[0].height;
-
-                if (canvasAspectRatio > internalTextureAspectRatio) {
-                    shader.u["uScaling"].value = [internalTextureAspectRatio / canvasAspectRatio, 1];
-                } else {
-                    shader.u["uScaling"].value = [1, canvasAspectRatio / internalTextureAspectRatio];
-                }
-            } else {
-                shader.u["uScaling"].value = [1, 1];
-            }
-            shader.u["uZoom"].value = Parameters.zoom;
-
-            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            shader.use();
-            shader.bindUniformsAndAttributes();
+            gl.bindFramebuffer(gl.FRAMEBUFFER, texture.currentFramebuffer);
+            shader.u["uPreviousIteration"].value = texture.previous;
+            shader.bindUniforms();
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         }
+        this.iteration = this._iteration + nbIterations;
     }
 
     public displayBrush(): void {
@@ -262,28 +258,6 @@ class Engine {
             this.brushDisplayShader.use();
             this.brushDisplayShader.bindUniformsAndAttributes();
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        }
-    }
-
-    private updateInternal(shader: Shader, nbIterations: number, texture: RenderToTextureSwapable): void {
-        for (let i = nbIterations; i > 0; i--) {
-            texture.swap();
-
-            gl.bindFramebuffer(gl.FRAMEBUFFER, texture.currentFramebuffer);
-            shader.u["uPreviousIteration"].value = texture.previous;
-            shader.bindUniforms();
-            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        }
-        this.iteration = this._iteration + nbIterations;
-    }
-
-    private set iteration(i: number) {
-        this._iteration = i;
-
-        const now = performance.now();
-        if (now - this.lastIterationUpdate > 200) {
-            Page.Canvas.setIndicatorText("iteration-indicator", this._iteration.toString());
-            this.lastIterationUpdate = now;
         }
     }
 
@@ -321,43 +295,21 @@ class Engine {
         }
     }
 
-    private asyncLoadShader(name: string, vertexFilename: string, fragmentFilename: string, callback: (shader: Shader) => unknown, injected: any = {}): void {
-        const id = `shader-${name}`;
-        Loader.registerLoadingObject(id);
+    public clearInternalTextures(): boolean {
+        if (this.resetShader) {
+            const pattern = Parameters.initialState;
+            this.resetShader.u["uPattern"].value = [pattern === EInitialState.BLANK, pattern === EInitialState.DISC, pattern === EInitialState.CIRCLE, 0];
 
-        ShaderManager.buildShader({
-            fragmentFilename,
-            vertexFilename,
-            injected,
-        }, (builtShader: Shader | null) => {
-            Loader.registerLoadedObject(id);
+            this.resetShader.use();
+            this.resetShader.bindUniformsAndAttributes();
 
-            if (builtShader !== null) {
-                builtShader.a["aCorner"].VBO = this.squareVBO;
-                callback(builtShader);
-            } else {
-                Page.Demopage.setErrorMessage(`${name}-shader-error`, `Failed to build '${name}' shader.`);
+            for (const texture of this.internalTextures) {
+                gl.bindFramebuffer(gl.FRAMEBUFFER, texture.currentFramebuffer);
+                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
             }
-        });
-    }
-
-    private computeNbIterationsForThisFrame(): number {
-        // Limit update speed to have same speed at 144fps than at 60fps
-        const nbIterationsPerFrameAt60FPS = Parameters.speed;
-        const MAX_FPS = 60;
-        const MIN_FPS = 10;
-
-        const now = performance.now();
-        const instantFPS = 1000 / (0.1 + now - this.lastUpdateTimestamp);
-        this.lastUpdateTimestamp = now;
-
-        if (instantFPS > MAX_FPS) { // runs very fast, limit update speed to run with expected speed
-            return Math.ceil(MAX_FPS / instantFPS * nbIterationsPerFrameAt60FPS);
-        } else if (instantFPS < MIN_FPS) { // runs very slow, try to reduce the workload to avoid huge freezes
-            return Math.ceil(instantFPS / MIN_FPS * nbIterationsPerFrameAt60FPS);
+            return true;
         }
-
-        return nbIterationsPerFrameAt60FPS;
+        return false;
     }
 
     private adjustInternalTextureSize(): boolean {
@@ -383,6 +335,56 @@ class Engine {
         }
         return false;
     }
+
+    private set iteration(i: number) {
+        this._iteration = i;
+
+        const now = performance.now();
+        if (now - this.lastIterationUpdate > 200) {
+            Page.Canvas.setIndicatorText("iteration-indicator", this._iteration.toString());
+            this.lastIterationUpdate = now;
+        }
+    }
+
+    private computeNbIterationsForThisFrame(): number {
+        // Limit update speed to have same speed at 144fps than at 60fps
+        const nbIterationsPerFrameAt60FPS = Parameters.speed;
+        const MAX_FPS = 60;
+        const MIN_FPS = 10;
+
+        const now = performance.now();
+        const instantFPS = 1000 / (0.1 + now - this.lastUpdateTimestamp);
+        this.lastUpdateTimestamp = now;
+
+        if (instantFPS > MAX_FPS) { // runs very fast, limit update speed to run with expected speed
+            return Math.ceil(MAX_FPS / instantFPS * nbIterationsPerFrameAt60FPS);
+        } else if (instantFPS < MIN_FPS) { // runs very slow, try to reduce the workload to avoid huge freezes
+            return Math.ceil(instantFPS / MIN_FPS * nbIterationsPerFrameAt60FPS);
+        }
+
+        return nbIterationsPerFrameAt60FPS;
+    }
+
+    private asyncLoadShader(name: string, vertexFilename: string, fragmentFilename: string, callback: (shader: Shader) => unknown, injected: any = {}): void {
+        const id = `shader-${name}`;
+        Loader.registerLoadingObject(id);
+
+        ShaderManager.buildShader({
+            fragmentFilename,
+            vertexFilename,
+            injected,
+        }, (builtShader: Shader | null) => {
+            Loader.registerLoadedObject(id);
+
+            if (builtShader !== null) {
+                builtShader.a["aCorner"].VBO = this.squareVBO;
+                callback(builtShader);
+            } else {
+                Page.Demopage.setErrorMessage(`${name}-shader-error`, `Failed to build '${name}' shader.`);
+            }
+        });
+    }
+
 }
 
 export {
