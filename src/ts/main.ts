@@ -23,6 +23,8 @@ function main(): void {
     }
     gl.disable(gl.CULL_FACE);
     gl.disable(gl.BLEND);
+    gl.disable(gl.DEPTH_TEST);
+    gl.disable(gl.STENCIL_TEST);
 
     const canvas = Page.Canvas.getCanvas();
 
