@@ -42,7 +42,7 @@ class Engine {
     // thrid one is used for blue
     private readonly internalTextures: [RenderToTextureSwapable, RenderToTextureSwapable, RenderToTextureSwapable]; // used for monochrome or red
 
-    private initialized: boolean;
+    private needToReset: boolean;
 
     private lastUpdateTimestamp: number = 0;
     private _iteration: number;
@@ -66,7 +66,7 @@ class Engine {
             new RenderToTextureSwapable(),
         ];
 
-        this.initialized = false;
+        this.needToReset = true;
         this.lastIterationUpdate = performance.now() - 5000;
         this.iteration = 0;
 
@@ -95,7 +95,7 @@ class Engine {
     }
 
     public reset(): void {
-        this.initialized = false;
+        this.needToReset = true;
     }
 
     public drawToCanvas(): void {
@@ -157,79 +157,81 @@ class Engine {
 
     public update(): void {
         if (this.adjustInternalTextureSize()) {
-            this.initialized = false; // need to reset because internal textures were resized
+            this.needToReset = true; // need to reset because internal textures were resized
         }
         gl.viewport(0, 0, this.internalTextures[0].width, this.internalTextures[0].height);
 
-        if (!this.initialized) {
-            this.initialized = this.clearInternalTextures();
+        if (this.needToReset) {
             this.iteration = 0;
+
+            if (!this.clearInternalTextures()) {
+                return;
+            }
+            this.needToReset = false;
         }
 
         this.handleBrush();
 
-        if (this.initialized) {
-            const nbIterations = this.computeNbIterationsForThisFrame();
-            if (nbIterations <= 0) {
-                return;
+        const nbIterations = this.computeNbIterationsForThisFrame();
+        if (nbIterations <= 0) {
+            return;
+        }
+
+        const map = Parameters.parametersMap;
+
+        if (map === EParametersMap.IMAGE) {
+            if (this.updateImageMapShader) {
+                const inputImageTexture = InputImage.getTexture();
+                this.updateImageMapShader.u["uImageMapTexture"].value = inputImageTexture.id;
+                this.updateImageMapShader.u["uDiffuseScaling"].value = Parameters.patternsScale;
+                this.updateImageMapShader.u["uTexelSize"].value = [1 / this.internalTextures[0].width, 1 / this.internalTextures[0].height];
+
+                this.updateImageMapShader.use();
+                this.updateImageMapShader.bindAttributes();
+
+                if (Parameters.displayMode === EDisplayMode.MONOCHROME) {
+                    this.updateImageMapShader.u["uSampledChannel"].value = [0, 0, 0, 1];
+                    this.updateInternal(this.updateImageMapShader, nbIterations, this.internalTextures[0]);
+                } else {
+                    const splitNbIterations = Math.ceil(nbIterations / 3);
+                    this.updateImageMapShader.u["uSampledChannel"].value = [1, 0, 0, 0];
+                    this.updateInternal(this.updateImageMapShader, splitNbIterations, this.internalTextures[0]);
+
+                    this.updateImageMapShader.u["uSampledChannel"].value = [0, 1, 0, 0];
+                    this.updateInternal(this.updateImageMapShader, splitNbIterations, this.internalTextures[1]);
+
+                    this.updateImageMapShader.u["uSampledChannel"].value = [0, 0, 1, 0];
+                    this.updateInternal(this.updateImageMapShader, splitNbIterations, this.internalTextures[2]);
+                }
+            }
+        } else {
+            let updateShader: Shader;
+
+            if (map === EParametersMap.UNIFORM) {
+                if (this.updateUniformShader) {
+                    this.updateUniformShader.u["uRates"].value = [
+                        Parameters.AFeedingRate,
+                        Parameters.BKillingRate,
+                        Parameters.ADiffusionRate,
+                        Parameters.BDIffusionRate,
+                    ];
+                    updateShader = this.updateUniformShader;
+                }
+            } else if (map === EParametersMap.VALUE_PICKING) {
+                if (this.updateMapShader) {
+                    this.updateMapShader.u["uRates"].value = [
+                        Parameters.ADiffusionRate,
+                        Parameters.BDIffusionRate,
+                    ];
+                    updateShader = this.updateMapShader;
+                }
             }
 
-            const map = Parameters.parametersMap;
-
-            if (map === EParametersMap.IMAGE) {
-                if (this.updateImageMapShader) {
-                    const inputImageTexture = InputImage.getTexture();
-                    this.updateImageMapShader.u["uImageMapTexture"].value = inputImageTexture.id;
-                    this.updateImageMapShader.u["uDiffuseScaling"].value = Parameters.patternsScale;
-                    this.updateImageMapShader.u["uTexelSize"].value = [1 / this.internalTextures[0].width, 1 / this.internalTextures[0].height];
-
-                    this.updateImageMapShader.use();
-                    this.updateImageMapShader.bindAttributes();
-
-                    if (Parameters.displayMode === EDisplayMode.MONOCHROME) {
-                        this.updateImageMapShader.u["uSampledChannel"].value = [0, 0, 0, 1];
-                        this.updateInternal(this.updateImageMapShader, nbIterations, this.internalTextures[0]);
-                    } else {
-                        const splitNbIterations = Math.ceil(nbIterations / 3);
-                        this.updateImageMapShader.u["uSampledChannel"].value = [1, 0, 0, 0];
-                        this.updateInternal(this.updateImageMapShader, splitNbIterations, this.internalTextures[0]);
-
-                        this.updateImageMapShader.u["uSampledChannel"].value = [0, 1, 0, 0];
-                        this.updateInternal(this.updateImageMapShader, splitNbIterations, this.internalTextures[1]);
-
-                        this.updateImageMapShader.u["uSampledChannel"].value = [0, 0, 1, 0];
-                        this.updateInternal(this.updateImageMapShader, splitNbIterations, this.internalTextures[2]);
-                    }
-                }
-            } else {
-                let updateShader: Shader;
-
-                if (map === EParametersMap.UNIFORM) {
-                    if (this.updateUniformShader) {
-                        this.updateUniformShader.u["uRates"].value = [
-                            Parameters.AFeedingRate,
-                            Parameters.BKillingRate,
-                            Parameters.ADiffusionRate,
-                            Parameters.BDIffusionRate,
-                        ];
-                        updateShader = this.updateUniformShader;
-                    }
-                } else if (map === EParametersMap.VALUE_PICKING) {
-                    if (this.updateMapShader) {
-                        this.updateMapShader.u["uRates"].value = [
-                            Parameters.ADiffusionRate,
-                            Parameters.BDIffusionRate,
-                        ];
-                        updateShader = this.updateMapShader;
-                    }
-                }
-
-                if (updateShader) {
-                    updateShader.use();
-                    updateShader.bindAttributes();
-                    updateShader.u["uTexelSize"].value = [1 / this.internalTextures[0].width, 1 / this.internalTextures[0].height];
-                    this.updateInternal(updateShader, nbIterations, this.internalTextures[0]);
-                }
+            if (updateShader) {
+                updateShader.use();
+                updateShader.bindAttributes();
+                updateShader.u["uTexelSize"].value = [1 / this.internalTextures[0].width, 1 / this.internalTextures[0].height];
+                this.updateInternal(updateShader, nbIterations, this.internalTextures[0]);
             }
         }
     }
