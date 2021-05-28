@@ -294,7 +294,7 @@ class Engine {
             if (isInRange(0, 1, mousePosition[0]) && isInRange(0, 1, mousePosition[1])) {
                 const size = Parameters.brushSize;
                 const zoom = Parameters.zoom;
-                const position = [2 * (mousePosition[0] - 0.5) / zoom / zoom, -2 * (mousePosition[1] - 0.5) / zoom / zoom];
+                const position = [2 * (mousePosition[0] - 0.5) / zoom, -2 * (mousePosition[1] - 0.5) / zoom];
 
                 if (map === EParametersMap.IMAGE) {
                     const canvasAspectRatio = this.targetWidth / this.targetHeight;
@@ -308,7 +308,7 @@ class Engine {
                 }
 
                 this.brushApplyShader.u["uPosition"].value = position;
-                this.brushApplyShader.u["uSize"].value = [size / this.internalTextures[0].width / zoom / zoom, size / this.internalTextures[0].height / zoom / zoom];
+                this.brushApplyShader.u["uSize"].value = [size / this.internalTextures[0].width / zoom, size / this.internalTextures[0].height / zoom];
 
                 this.brushApplyShader.use();
                 this.brushApplyShader.bindUniformsAndAttributes();
