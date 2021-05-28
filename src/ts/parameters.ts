@@ -165,6 +165,18 @@ Parameters.imageUploadObservers.push(callResetObservers);
 Page.Tabs.addObserver(controlId.PARAMETERS_MAP_TABS, () => {
     isInValuePickingMode = false;
     updateParametersVisibility();
+
+    if (Parameters.parametersMap === EParametersMap.IMAGE) {
+        Page.Range.setValue(controlId.ZOOM_RANGE, 1);
+        Page.Range.setValue(controlId.SPEED_RANGE, 40);
+        Page.Tabs.setValues(controlId.INITIAL_STATE_TABS, [EInitialState.CIRCLE]);
+        Page.Tabs.setValues(controlId.SHADING_TABS, [EShading.BINARY]);
+
+        Page.Range.clearStoredState(controlId.ZOOM_RANGE);
+        Page.Range.clearStoredState(controlId.SPEED_RANGE);
+        Page.Tabs.clearStoredState(controlId.INITIAL_STATE_TABS);
+        Page.Tabs.clearStoredState(controlId.SHADING_TABS);
+    }
 });
 Page.Tabs.addObserver(controlId.DISPLAY_MODE_TABS, updateParametersVisibility);
 updateParametersVisibility();
