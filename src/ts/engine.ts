@@ -96,7 +96,6 @@ class Engine {
     public update(): void {
         if (this.adjustInternalTextureSize()) {
             this.initialized = false; // need to reset because internal textures were resized
-            console.log("resized");
         }
         if (!this.initialized) {
             this.initialized = this.clearInternalTextures();
@@ -339,11 +338,13 @@ class Engine {
     }
 
     private adjustInternalTextureSize(): boolean {
-        let resizedSomething = false;
-        for (const texture of this.internalTextures) {
-            resizedSomething = texture.reserveSpace(this.targetWidth, this.targetHeight) || resizedSomething;
+        if (this.internalTextures[0].width !== this.targetWidth || this.internalTextures[0].height !== this.targetHeight) {
+            for (const texture of this.internalTextures) {
+                texture.reserveSpace(this.targetWidth, this.targetHeight);
+            }
+            return true;
         }
-        return resizedSomething;
+        return false;
     }
 }
 
