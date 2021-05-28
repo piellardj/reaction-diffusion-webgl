@@ -2,7 +2,7 @@ import { gl } from "../gl-utils/gl-canvas";
 import * as Loader from "../loader";
 
 function buildDefaultImageData(): ImageData {
-    const v = 128;
+    const v = 0;
 
     try {
         return new ImageData(new Uint8ClampedArray([v, v, v, v]), 1, 1);
