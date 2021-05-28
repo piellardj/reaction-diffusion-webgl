@@ -469,6 +469,7 @@ var Page;
                     if (v === null) {
                         this.currentValueElement.removeAttribute("data-value");
                         this.currentValueElement.textContent = this.placeholder;
+                        this.currentValue = null;
                     }
                     else {
                         for (var _i = 0, _a = this.valueElements; _i < _a.length; _i++) {
