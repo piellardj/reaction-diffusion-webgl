@@ -10,6 +10,10 @@ import { ImageTexture } from "./texture/image-texture";
 import { RenderToTextureSwapable } from "./texture/render-to-texture-swapable";
 
 
+function isInRange(min: number, max: number, x: number): boolean {
+    return min <= x && x <= max;
+}
+
 class Engine {
     public static readonly A_FEEDING_MIN: number = 0.01;
     public static readonly A_FEEDING_MAX: number = 0.1;
@@ -65,21 +69,21 @@ class Engine {
         this.lastIterationUpdate = performance.now() - 5000;
         this.iteration = 0;
 
-        this.asyncLoadShader("display-monochrome", "fullscreen.vert", "display/display-monochrome.frag", (shader: Shader) => { this.displayMonochromeShader = shader; });
-        this.asyncLoadShader("display-tricolor", "fullscreen.vert", "display/display-tricolor.frag", (shader: Shader) => { this.displayTricolorShader = shader; });
-        this.asyncLoadShader("display-ramp", "fullscreen.vert", "display/display-ramp.frag", (shader: Shader) => { this.displayRampShader = shader; });
+        this.asyncLoadShader("display-monochrome", "display/display.vert", "display/display-monochrome.frag", (shader: Shader) => { this.displayMonochromeShader = shader; });
+        this.asyncLoadShader("display-tricolor", "display/display.vert", "display/display-tricolor.frag", (shader: Shader) => { this.displayTricolorShader = shader; });
+        this.asyncLoadShader("display-ramp", "display/display.vert", "display/display-ramp.frag", (shader: Shader) => { this.displayRampShader = shader; });
 
-        this.asyncLoadShader("update-uniform", "fullscreen.vert", "update/update-uniform.frag", (shader: Shader) => { this.updateUniformShader = shader; });
-        this.asyncLoadShader("update-map", "fullscreen.vert", "update/update-map.frag", (shader: Shader) => { this.updateMapShader = shader; },
+        this.asyncLoadShader("update-uniform", "update/update.vert", "update/update-uniform.frag", (shader: Shader) => { this.updateUniformShader = shader; });
+        this.asyncLoadShader("update-map", "update/update.vert", "update/update-map.frag", (shader: Shader) => { this.updateMapShader = shader; },
             {
                 A_FEEDING_MIN: Engine.A_FEEDING_MIN.toFixed(5),
                 A_FEEDING_MAX: Engine.A_FEEDING_MAX.toFixed(5),
                 B_KILLING_MIN: Engine.B_KILLING_MIN.toFixed(5),
                 B_KILLING_MAX: Engine.B_KILLING_MAX.toFixed(5),
             });
-        this.asyncLoadShader("update-image", "fullscreen.vert", "update/update-map-image.frag", (shader: Shader) => { this.updateImageMapShader = shader; });
+        this.asyncLoadShader("update-image", "update/update.vert", "update/update-map-image.frag", (shader: Shader) => { this.updateImageMapShader = shader; });
 
-        this.asyncLoadShader("reset", "fullscreen.vert", "update/reset.frag", (shader: Shader) => { this.resetShader = shader; });
+        this.asyncLoadShader("reset", "update/update.vert", "update/reset.frag", (shader: Shader) => { this.resetShader = shader; });
         this.asyncLoadShader("brush-apply", "update/brush.vert", "update/brush-apply.frag", (shader: Shader) => { this.brushApplyShader = shader; });
         this.asyncLoadShader("brush-display", "update/brush.vert", "update/brush-display.frag", (shader: Shader) => { this.brushDisplayShader = shader; });
     }
@@ -97,6 +101,8 @@ class Engine {
         if (this.adjustInternalTextureSize()) {
             this.initialized = false; // need to reset because internal textures were resized
         }
+        gl.viewport(0, 0, this.internalTextures[0].width, this.internalTextures[0].height);
+
         if (!this.initialized) {
             this.initialized = this.clearInternalTextures();
             this.iteration = 0;
@@ -118,14 +124,6 @@ class Engine {
                     this.updateImageMapShader.u["uImageMapTexture"].value = inputImageTexture.id;
                     this.updateImageMapShader.u["uDiffuseScaling"].value = Parameters.patternsScale;
                     this.updateImageMapShader.u["uTexelSize"].value = [1 / this.internalTextures[0].width, 1 / this.internalTextures[0].height];
-
-                    const canvasAspectRatio = Page.Canvas.getAspectRatio();
-                    const imageAspectRatio = inputImageTexture.width / inputImageTexture.height;
-                    if (canvasAspectRatio > imageAspectRatio) {
-                        this.updateImageMapShader.u["uImageMapScaling"].value = [canvasAspectRatio / imageAspectRatio, 1];
-                    } else {
-                        this.updateImageMapShader.u["uImageMapScaling"].value = [1, imageAspectRatio / canvasAspectRatio];
-                    }
 
                     this.updateImageMapShader.use();
                     this.updateImageMapShader.bindAttributes();
@@ -196,6 +194,8 @@ class Engine {
     }
 
     public drawToCanvas(): void {
+        gl.viewport(0, 0, this.targetWidth, this.targetHeight);
+
         let shader: Shader;
 
         const displayMode = Parameters.displayMode;
@@ -228,7 +228,21 @@ class Engine {
         }
 
         if (shader) {
-            shader.u["uScaling"].value = 1 / Parameters.zoom;
+            const map = Parameters.parametersMap;
+            if (map === EParametersMap.IMAGE) {
+                const canvasAspectRatio = this.targetWidth / this.targetHeight;
+                const internalTextureAspectRatio = this.internalTextures[0].width / this.internalTextures[0].height;
+
+                if (canvasAspectRatio > internalTextureAspectRatio) {
+                    shader.u["uScaling"].value = [internalTextureAspectRatio / canvasAspectRatio, 1];
+                } else {
+                    shader.u["uScaling"].value = [1, canvasAspectRatio / internalTextureAspectRatio];
+                }
+            } else {
+                shader.u["uScaling"].value = [1, 1];
+            }
+            shader.u["uZoom"].value = Parameters.zoom;
+
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             shader.use();
             shader.bindUniformsAndAttributes();
@@ -237,7 +251,13 @@ class Engine {
     }
 
     public displayBrush(): void {
-        if (this.brushDisplayShader) {
+        if (Parameters.parametersMap !== EParametersMap.VALUE_PICKING && this.brushDisplayShader) {
+            const size = Parameters.brushSize;
+            const mousePosition = Page.Canvas.getMousePosition();
+
+            this.brushDisplayShader.u["uPosition"].value = [2 * (mousePosition[0] - 0.5), -2 * (mousePosition[1] - 0.5)];
+            this.brushDisplayShader.u["uSize"].value = [size / this.targetWidth, size / this.targetHeight];
+
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             this.brushDisplayShader.use();
             this.brushDisplayShader.bindUniformsAndAttributes();
@@ -268,31 +288,34 @@ class Engine {
     }
 
     private handleBrush(): void {
-        if (Parameters.parametersMap !== EParametersMap.VALUE_PICKING) {
+        const map = Parameters.parametersMap;
+        if (map !== EParametersMap.VALUE_PICKING && this.brushApplyShader && Page.Canvas.isMouseDown()) {
             const mousePosition = Page.Canvas.getMousePosition();
-            if (mousePosition[0] >= 0 && mousePosition[0] <= 1 && mousePosition[1] >= 0 && mousePosition[1] <= 1) {
+            if (isInRange(0, 1, mousePosition[0]) && isInRange(0, 1, mousePosition[1])) {
                 const size = Parameters.brushSize;
-                const position = [mousePosition[0], 1 - mousePosition[1]];
-                const brushSize = [size / this.internalTextures[0].width, size / this.internalTextures[1].height];
+                const zoom = Parameters.zoom;
+                const position = [2 * (mousePosition[0] - 0.5) / zoom / zoom, -2 * (mousePosition[1] - 0.5) / zoom / zoom];
 
-                if (this.brushApplyShader) {
-                    const zoom = Parameters.zoom;
-                    this.brushApplyShader.u["uPosition"].value = [0.5 + (position[0] - 0.5) / zoom, 0.5 + (position[1] - 0.5) / zoom];
-                    this.brushApplyShader.u["uSize"].value = [brushSize[0] / zoom, brushSize[1] / zoom];
-                }
-                if (this.brushDisplayShader) {
-                    this.brushDisplayShader.u["uPosition"].value = position;
-                    this.brushDisplayShader.u["uSize"].value = brushSize;
-                }
+                if (map === EParametersMap.IMAGE) {
+                    const canvasAspectRatio = this.targetWidth / this.targetHeight;
+                    const internalTextureAspectRatio = this.internalTextures[0].width / this.internalTextures[0].height;
 
-                if (this.brushApplyShader && Page.Canvas.isMouseDown()) {
-                    this.brushApplyShader.use();
-                    this.brushApplyShader.bindUniformsAndAttributes();
-
-                    for (const texture of this.internalTextures) {
-                        gl.bindFramebuffer(gl.FRAMEBUFFER, texture.currentFramebuffer);
-                        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+                    if (canvasAspectRatio > internalTextureAspectRatio) {
+                        position[0] *= canvasAspectRatio / internalTextureAspectRatio;
+                    } else if (canvasAspectRatio < internalTextureAspectRatio) {
+                        position[1] *= internalTextureAspectRatio / canvasAspectRatio;
                     }
+                }
+
+                this.brushApplyShader.u["uPosition"].value = position;
+                this.brushApplyShader.u["uSize"].value = [size / this.internalTextures[0].width / zoom / zoom, size / this.internalTextures[0].height / zoom / zoom];
+
+                this.brushApplyShader.use();
+                this.brushApplyShader.bindUniformsAndAttributes();
+
+                for (const texture of this.internalTextures) {
+                    gl.bindFramebuffer(gl.FRAMEBUFFER, texture.currentFramebuffer);
+                    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
                 }
             }
         }
@@ -338,9 +361,23 @@ class Engine {
     }
 
     private adjustInternalTextureSize(): boolean {
-        if (this.internalTextures[0].width !== this.targetWidth || this.internalTextures[0].height !== this.targetHeight) {
+        let neededWidth = this.targetWidth;
+        let neededHeight = this.targetHeight;
+
+        if (Parameters.parametersMap === EParametersMap.IMAGE) {
+            const canvasAspectRatio = this.targetWidth / this.targetHeight;
+            const imageAspectRatio = InputImage.getTexture().width / InputImage.getTexture().height;
+
+            if (canvasAspectRatio > imageAspectRatio) {
+                neededWidth = Math.ceil(imageAspectRatio / canvasAspectRatio * this.targetWidth);
+            } else if (canvasAspectRatio < imageAspectRatio) {
+                neededHeight = Math.ceil(canvasAspectRatio / imageAspectRatio * this.targetHeight);
+            }
+        }
+
+        if (this.internalTextures[0].width !== neededWidth || this.internalTextures[0].height !== neededHeight) {
             for (const texture of this.internalTextures) {
-                texture.reserveSpace(this.targetWidth, this.targetHeight);
+                texture.reserveSpace(neededWidth, neededHeight);
             }
             return true;
         }

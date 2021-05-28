@@ -55,7 +55,6 @@ function main(): void {
 
         if (needToAdjustCanvasSize) {
             GLCanvas.adjustSize(false);
-            gl.viewport(0, 0, canvas.width, canvas.height);
             engine.resize(canvas.width, canvas.height);
             needToAdjustCanvasSize = false;
         }
