@@ -28,9 +28,11 @@ class RenderToTextureSwapable {
     }
 
 
-    public reserveSpace(width: number, height: number): void {
-        this.previousTexture.reserveSpace(width, height);
-        this.currentTexture.reserveSpace(width, height);
+    public reserveSpace(width: number, height: number): boolean {
+        let resizedSomething = false;
+        resizedSomething = this.previousTexture.reserveSpace(width, height) || resizedSomething;
+        resizedSomething = this.currentTexture.reserveSpace(width, height) || resizedSomething;
+        return resizedSomething;
     }
 
     public swap(): void {

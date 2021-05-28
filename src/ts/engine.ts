@@ -43,6 +43,9 @@ class Engine {
     private _iteration: number;
     private lastIterationUpdate: number;
 
+    private targetWidth: number = 1;
+    private targetHeight: number = 1;
+
     public constructor() {
         this.squareVBO = VBO.createQuad(gl, -1, -1, +1, +1);
 
@@ -81,17 +84,23 @@ class Engine {
         this.asyncLoadShader("brush-display", "update/brush.vert", "update/brush-display.frag", (shader: Shader) => { this.brushDisplayShader = shader; });
     }
 
-    public initialize(width: number, height: number): void {
-        for (const texture of this.internalTextures) {
-            texture.reserveSpace(width, height);
-        }
+    public resize(width: number, height: number): void {
+        this.targetWidth = width;
+        this.targetHeight = height;
+    }
+
+    public reset(): void {
         this.initialized = false;
-        this.iteration = 0;
     }
 
     public update(): void {
+        if (this.adjustInternalTextureSize()) {
+            this.initialized = false; // need to reset because internal textures were resized
+            console.log("resized");
+        }
         if (!this.initialized) {
-            this.initialized = this.reset();
+            this.initialized = this.clearInternalTextures();
+            this.iteration = 0;
         }
 
         this.handleBrush();
@@ -170,9 +179,8 @@ class Engine {
         }
     }
 
-    public reset(): boolean {
+    public clearInternalTextures(): boolean {
         if (this.resetShader) {
-
             const pattern = Parameters.initialState;
             this.resetShader.u["uPattern"].value = [pattern === EInitialState.BLANK, pattern === EInitialState.DISC, pattern === EInitialState.CIRCLE, 0];
 
@@ -328,6 +336,14 @@ class Engine {
         }
 
         return nbIterationsPerFrameAt60FPS;
+    }
+
+    private adjustInternalTextureSize(): boolean {
+        let resizedSomething = false;
+        for (const texture of this.internalTextures) {
+            resizedSomething = texture.reserveSpace(this.targetWidth, this.targetHeight) || resizedSomething;
+        }
+        return resizedSomething;
     }
 }
 

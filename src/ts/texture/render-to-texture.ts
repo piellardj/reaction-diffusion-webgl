@@ -14,7 +14,7 @@ class RenderToTexture {
         this._height = -1;
     }
 
-    public reserveSpace(wantedWidth: number, wantedHeight: number): void {
+    public reserveSpace(wantedWidth: number, wantedHeight: number): boolean {
         wantedWidth = Math.ceil(wantedWidth);
         wantedHeight = Math.ceil(wantedHeight);
 
@@ -35,7 +35,9 @@ class RenderToTexture {
 
             this._width = wantedWidth;
             this._height = wantedHeight;
+            return true;
         }
+        return false;
     }
 
     public get width(): number {
