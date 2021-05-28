@@ -108,6 +108,8 @@ class Engine {
                 if (this.updateImageMapShader) {
                     const inputImageTexture = InputImage.getTexture();
                     this.updateImageMapShader.u["uImageMapTexture"].value = inputImageTexture.id;
+                    this.updateImageMapShader.u["uDiffuseScaling"].value = Parameters.patternsScale;
+                    this.updateImageMapShader.u["uTexelSize"].value = [1 / this.internalTextures[0].width, 1 / this.internalTextures[0].height];
 
                     const canvasAspectRatio = Page.Canvas.getAspectRatio();
                     const imageAspectRatio = inputImageTexture.width / inputImageTexture.height;
@@ -117,11 +119,8 @@ class Engine {
                         this.updateImageMapShader.u["uImageMapScaling"].value = [1, imageAspectRatio / canvasAspectRatio];
                     }
 
-                    this.updateImageMapShader.u["uDiffuseScaling"].value = Parameters.patternsScale;
-
                     this.updateImageMapShader.use();
                     this.updateImageMapShader.bindAttributes();
-                    this.updateImageMapShader.u["uTexelSize"].value = [1 / this.internalTextures[0].width, 1 / this.internalTextures[0].height];
 
                     if (Parameters.displayMode === EDisplayMode.MONOCHROME) {
                         this.updateImageMapShader.u["uSampledChannel"].value = [0, 0, 0, 1];
