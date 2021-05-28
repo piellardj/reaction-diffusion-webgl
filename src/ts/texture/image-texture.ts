@@ -1,6 +1,8 @@
 import { gl } from "../gl-utils/gl-canvas";
 import * as Loader from "../loader";
 
+function buildDefaultImageData(): ImageData {
+    const v = 128;
 
     try {
         return new ImageData(new Uint8ClampedArray([v, v, v, v]), 1, 1);
@@ -27,7 +29,7 @@ class ImageTexture {
     public constructor(image?: ImageData) {
         this.id = gl.createTexture();
 
-        this.uploadDataToGPU(image ?? defaultImageData);
+        this.uploadToGPU(image ?? defaultImageData);
     }
 
     public loadFromUrl(url: string): void {
@@ -38,26 +40,13 @@ class ImageTexture {
         const rampImage = new Image();
         rampImage.addEventListener("load", () => {
             Loader.registerLoadedObject(url);
-            this.uploadImageToGPU(rampImage);
+            this.uploadToGPU(rampImage);
         });
 
         rampImage.src = url;
     }
 
-    public uploadDataToGPU(image: ImageData): void {
-        this._width = image.width;
-        this._height = image.height;
-
-        gl.bindTexture(gl.TEXTURE_2D, this.id);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, image.width, image.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, image.data);
-        gl.bindTexture(gl.TEXTURE_2D, null);
-    }
-
-    public uploadImageToGPU(image: HTMLImageElement): void {
+    public uploadToGPU(image: HTMLImageElement | ImageData): void {
         this._width = image.width;
         this._height = image.height;
 
