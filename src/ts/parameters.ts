@@ -176,6 +176,7 @@ Page.Tabs.addObserver(controlId.PARAMETERS_MAP_TABS, () => {
         Page.Range.clearStoredState(controlId.SPEED_RANGE);
         Page.Tabs.clearStoredState(controlId.INITIAL_STATE_TABS);
         Page.Tabs.clearStoredState(controlId.SHADING_TABS);
+        Page.Select.clearStoredState(controlId.PRESET_SELECT);
     }
 });
 Page.Tabs.addObserver(controlId.DISPLAY_MODE_TABS, updateParametersVisibility);
