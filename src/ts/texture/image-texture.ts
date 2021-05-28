@@ -2,11 +2,22 @@ import { gl } from "../gl-utils/gl-canvas";
 import * as Loader from "../loader";
 
 
-const defaultImageData: ImageData = {
-    data: new Uint8ClampedArray([128, 128, 128, 128]),
-    width: 1,
-    height: 1,
-};
+    try {
+        return new ImageData(new Uint8ClampedArray([v, v, v, v]), 1, 1);
+    } catch {
+        console.log("Failed to create default ImageData from constructor, using Canvas2D instead...");
+
+        const hiddenCanvas = document.createElement("canvas");
+        const context = hiddenCanvas.getContext("2d");
+        const result = context.createImageData(1, 1);
+        for (let i = 0; i < result.data.length; i++) {
+            result.data[i] = v;
+        }
+        return result;
+    }
+}
+
+const defaultImageData = buildDefaultImageData();
 
 class ImageTexture {
     public readonly id: WebGLTexture;
