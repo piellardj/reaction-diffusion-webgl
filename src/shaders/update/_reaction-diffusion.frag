@@ -14,7 +14,6 @@ vec2 laplacian() {
         decode(texture2D(uPreviousIteration, vSamplingPosition + vec2(+1, -1) * uTexelSize)) * 0.05 +
 
         decode(texture2D(uPreviousIteration, vSamplingPosition + vec2(-1, +0) * uTexelSize)) * 0.20 +
-        decode(texture2D(uPreviousIteration, vSamplingPosition + vec2(+0, +0) * uTexelSize)) * -1.0 +
         decode(texture2D(uPreviousIteration, vSamplingPosition + vec2(+1, +0) * uTexelSize)) * 0.20 +
     
         decode(texture2D(uPreviousIteration, vSamplingPosition + vec2(-1, +1) * uTexelSize)) * 0.05 +
@@ -23,9 +22,9 @@ vec2 laplacian() {
 }
 
 vec4 computeNewValue(const float feedA, const float killB, const float diffuseA, const float diffuseB) {
-    vec2 laplace = laplacian();
-
     vec2 values = decode(texture2D(uPreviousIteration, vSamplingPosition));
+    vec2 laplace = laplacian() - values;
+
 
     float A = values.x;
     float B = values.y;
