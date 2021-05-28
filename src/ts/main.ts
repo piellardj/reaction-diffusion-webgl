@@ -13,7 +13,7 @@ import "./page-interface-generated";
 function main(): void {
     const webglFlags = {
         alpha: false,
-        antialias: true,
+        antialias: false,
         depth: false,
         stencil: false,
         preserveDrawingBuffer: false,
