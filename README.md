@@ -38,6 +38,8 @@ This system can easily be discretized by turning it into a cellular automaton:
 ### Implementation
 The values for A and B are stored in a texture. Unfortunately, the default precision of 8 bits per channel is not enough for this simulation. A `RG16F` texture format would be ideal, however it is only available in WebGL 2. This is why I have to store each 16 bits value on 2x8 bits channels of a RGBA texture: the value for A is stored in red and green, and the value for B in blue and alpha.
 
+This also prevents me from using a little trick to make the blurring part cheaper. The bluring is currently performed by applying a 3x3 kernel, which means 9 texture fetches. A common technique to make that faster is to take advantage of the linear interpolation performed by the GPU, in order to go down to only 5 fetches. However because the values are stored in 2 channels, this leads to numerical imprecisions, which are fine for displaying but unsuited for the computing part. 
+
 ## Image mode
 In image mode, the feed and kill rates are not uniform, they vary locally based on the source image. They are interpolated between 2 presets, for white and black:
 ![Illustration of interpolation values](src/readme/interpolation.png)
