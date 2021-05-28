@@ -64,7 +64,7 @@ class Engine {
 
         this.asyncLoadShader("display-monochrome", "fullscreen.vert", "display/display-monochrome.frag", (shader: Shader) => { this.displayMonochromeShader = shader; });
         this.asyncLoadShader("display-tricolor", "fullscreen.vert", "display/display-tricolor.frag", (shader: Shader) => { this.displayTricolorShader = shader; });
-        this.asyncLoadShader("display-tricolor", "fullscreen.vert", "display/display-ramp.frag", (shader: Shader) => { this.displayRampShader = shader; });
+        this.asyncLoadShader("display-ramp", "fullscreen.vert", "display/display-ramp.frag", (shader: Shader) => { this.displayRampShader = shader; });
 
         this.asyncLoadShader("update-uniform", "fullscreen.vert", "update/update-uniform.frag", (shader: Shader) => { this.updateUniformShader = shader; });
         this.asyncLoadShader("update-map", "fullscreen.vert", "update/update-map.frag", (shader: Shader) => { this.updateMapShader = shader; },
