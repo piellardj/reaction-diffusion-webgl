@@ -239,7 +239,6 @@ Page.FileControl.addUploadObserver(controlId.INPUT_IMAGE_UPLOAD, (filesList: Fil
 
 Page.FileControl.addDownloadObserver(controlId.IMAGE_DOWNLOAD, () => {
     callObservers(Parameters.imageDownloadObservers);
-    callResetObservers();
 });
 
 function applyCurrentPreset(): void {
