@@ -1,6 +1,9 @@
 {
   "name": "reaction-diffusion-webgl",
   "homepage": "https://piellardj.github.io/reaction-diffusion-webgl",
+  "author": "Jérémie PIELLARD <jeremie.piellard@gmail.com> (https://github.com/piellardj)",
+  "repository": "github:piellardj/reaction-diffusion-webgl",
+  "private": true,
   "scripts": {
     "pre-commit": "npm run rebuild && npm run lint",
     "http-server": "http-server ./docs -p 8080",
@@ -12,8 +15,6 @@
     "rebuild": "npm run clean && npm run build",
     "webpack": "webpack --config src/config/webpack.config.js"
   },
-  "author": "Jérémie PIELLARD <jeremie.piellard@gmail.com> (https://github.com/piellardj)",
-  "repository": "github:piellardj/reaction-diffusion-webgl",
   "devDependencies": {
     "@types/fs-extra": "^9.0.11",
     "@types/node": "^15.6.1",
