@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 var Page;
 (function (Page) {
     var Demopage;
@@ -44,7 +43,6 @@ var Page;
     })(Demopage = Page.Demopage || (Page.Demopage = {}));
 })(Page || (Page = {}));
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 var Page;
 (function (Page) {
     var Helpers;
@@ -163,7 +161,6 @@ var Page;
     })(Helpers = Page.Helpers || (Page.Helpers = {}));
 })(Page || (Page = {}));
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 var Page;
 (function (Page) {
     var Controls;
@@ -184,7 +181,6 @@ var Page;
         Controls.setVisibility = setVisibility;
     })(Controls = Page.Controls || (Page.Controls = {}));
 })(Page || (Page = {}));
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 (function (Page) {
     var Sections;
     (function (Sections) {
@@ -245,7 +241,6 @@ var Page;
 })(Page || (Page = {}));
 
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 var Page;
 (function (Page) {
     var Tabs;
@@ -413,7 +408,6 @@ var Page;
 })(Page || (Page = {}));
 
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 var Page;
 (function (Page) {
     var Select;
@@ -426,14 +420,14 @@ var Page;
                 this.containerElement = container;
                 this.currentValueElement = container.querySelector(".select-current-value");
                 this.valuesListElement = container.querySelector(".select-values-list");
-                this.placeholder = this.valuesListElement.dataset.placeholder;
-                this.currentValue = this.currentValueElement.dataset.value;
+                this.placeholder = this.valuesListElement.dataset["placeholder"];
+                this.currentValue = this.currentValueElement.dataset["value"];
                 this.valueElements = [];
                 var elements = this.valuesListElement.querySelectorAll(".select-value[data-value]");
                 for (var i = 0; i < elements.length; i++) {
                     this.valueElements.push(elements[i]);
                 }
-                this.containerElement.style.width = this.computeMinimumWidth() + "px";
+                this.containerElement.style.width = "".concat(this.computeMinimumWidth(), "px");
                 document.addEventListener("click", function (event) {
                     var clickedElement = event.target;
                     var isExpanded = _this.containerElement.classList.contains(Select.EXPANDED_CLASS);
@@ -443,8 +437,8 @@ var Page;
                             for (var _i = 0, _a = _this.valueElements; _i < _a.length; _i++) {
                                 var valueElement = _a[_i];
                                 if (valueElement.contains(clickedElement)) {
-                                    _this.currentValue = valueElement.dataset.value;
-                                    _this.currentValueElement.dataset.value = _this.currentValue;
+                                    _this.currentValue = valueElement.dataset["value"];
+                                    _this.currentValueElement.dataset["value"] = _this.currentValue;
                                     _this.currentValueElement.textContent = valueElement.textContent;
                                     Storage.storeState(_this);
                                     _this.callObservers();
@@ -474,14 +468,15 @@ var Page;
                     else {
                         for (var _i = 0, _a = this.valueElements; _i < _a.length; _i++) {
                             var valueElement = _a[_i];
-                            if (valueElement.dataset.value === v) {
-                                this.currentValue = valueElement.dataset.value;
-                                this.currentValueElement.dataset.value = valueElement.dataset.value;
+                            var valueFromHtml = valueElement.dataset["value"];
+                            if (valueFromHtml === v) {
+                                this.currentValue = valueFromHtml;
+                                this.currentValueElement.dataset["value"] = valueFromHtml;
                                 this.currentValueElement.textContent = valueElement.textContent;
                                 return;
                             }
                         }
-                        console.log("No \"" + v + "\" value for \"" + this.id + "\" select.");
+                        console.log("No \"".concat(v, "\" value for \"").concat(this.id, "\" select."));
                     }
                 },
                 enumerable: false,
@@ -503,7 +498,13 @@ var Page;
                 placeholderValue.classList.add("select-value");
                 placeholderValue.textContent = this.placeholder;
                 this.valuesListElement.appendChild(placeholderValue);
+                var parentNode = this.containerElement.parentNode;
+                var nextSiblingNode = this.containerElement.nextSibling;
+                parentNode.removeChild(this.containerElement);
+                document.body.appendChild(this.containerElement);
                 result = this.valuesListElement.getBoundingClientRect().width;
+                document.body.removeChild(this.containerElement);
+                parentNode.insertBefore(this.containerElement, nextSiblingNode);
                 this.valuesListElement.removeChild(placeholderValue);
                 this.valuesListElement.style.display = "";
                 this.valuesListElement.style.fontWeight = "";
@@ -598,7 +599,6 @@ var Page;
 })(Page || (Page = {}));
 
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 var Page;
 (function (Page) {
     var Range;
@@ -612,7 +612,10 @@ var Page;
                 this.progressLeftElement = container.querySelector(".range-progress-left");
                 this.tooltipElement = container.querySelector("output.range-tooltip");
                 this.id = this.inputElement.id;
-                this.nbDecimalsToDisplay = Range.getMaxNbDecimals(+this.inputElement.min, +this.inputElement.max, +this.inputElement.step);
+                var inputMin = +this.inputElement.min;
+                var inputMax = +this.inputElement.max;
+                var inputStep = +this.inputElement.step;
+                this.nbDecimalsToDisplay = Range.getMaxNbDecimals(inputMin, inputMax, inputStep);
                 this.inputElement.addEventListener("input", function (event) {
                     event.stopPropagation();
                     _this.reloadValue();
@@ -753,7 +756,8 @@ var Page;
             Cache.load();
             Storage.applyStoredState();
         });
-        var isIE11 = !!window.MSInputMethodContext && !!document["documentMode"];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        var isIE11 = !!window.MSInputMethodContext && !!document.documentMode;
         /**
          * Callback will be called every time the value changes.
          * @return {boolean} Whether or not the observer was added
@@ -813,64 +817,113 @@ var Page;
     })(Range = Page.Range || (Page.Range = {}));
 })(Page || (Page = {}));
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 var Page;
 (function (Page) {
     var FileControl;
     (function (FileControl) {
-        var filenameMaxSize = 16;
-        function truncate(name) {
-            if (name.length > filenameMaxSize) {
-                return name.substring(0, 15) + "..." +
-                    name.substring(name.length - 15);
-            }
-            return name;
-        }
-        function getElementBySelector(selector) {
-            var elt = document.querySelector(selector);
-            if (!elt) {
-                console.error("Cannot find input file '" + selector + "'.");
-            }
-            return elt;
-        }
-        function getUploadInputById(id) {
-            var selector = ".file-control.upload > input[type=file][id=" + id + "]";
-            return getElementBySelector(selector);
-        }
-        function getDownloadInputById(id) {
-            var selector = ".file-control.download > input[type=button][id=" + id + "]";
-            return getElementBySelector(selector);
-        }
-        /* Bind event so that filename is displayed on upload */
-        var labelsSelector = ".file-control.upload > label";
-        Page.Helpers.Events.callAfterDOMLoaded(function () {
-            var labels = document.querySelectorAll(labelsSelector);
-            var _loop_1 = function (i) {
-                var label = labels[i];
-                var input = getUploadInputById(label.htmlFor);
-                if (input) {
-                    var span_1 = label.querySelector("span");
-                    input.addEventListener("change", function () {
-                        if (input.files.length === 1) {
-                            span_1.innerText = truncate(input.files[0].name);
+        var FileUpload = /** @class */ (function () {
+            function FileUpload(container) {
+                var _this = this;
+                this.observers = [];
+                this.inputElement = container.querySelector("input");
+                this.labelSpanElement = container.querySelector("label > span");
+                this.inputElement.addEventListener("change", function (event) {
+                    event.stopPropagation();
+                    var files = _this.inputElement.files;
+                    if (files.length === 1) {
+                        _this.labelSpanElement.innerText = FileUpload.truncate(files[0].name);
+                        for (var _i = 0, _a = _this.observers; _i < _a.length; _i++) {
+                            var observer = _a[_i];
+                            observer(files);
                         }
-                    }, false);
-                }
-            };
-            for (var i = 0; i < labels.length; i++) {
-                _loop_1(i);
+                    }
+                }, false);
             }
+            FileUpload.prototype.clear = function () {
+                this.inputElement.value = "";
+                this.labelSpanElement.innerText = this.labelSpanElement.dataset["placeholder"];
+            };
+            FileUpload.truncate = function (name) {
+                if (name.length > FileUpload.filenameMaxSize) {
+                    return name.substring(0, FileUpload.filenameMaxSize - 1) + "..." +
+                        name.substring(name.length - (FileUpload.filenameMaxSize - 1));
+                }
+                return name;
+            };
+            FileUpload.filenameMaxSize = 16;
+            return FileUpload;
+        }());
+        var FileDownload = /** @class */ (function () {
+            function FileDownload(container) {
+                var _this = this;
+                this.observers = [];
+                this.buttonElement = container.querySelector("input");
+                this.buttonElement.addEventListener("click", function (event) {
+                    event.stopPropagation();
+                    for (var _i = 0, _a = _this.observers; _i < _a.length; _i++) {
+                        var observer = _a[_i];
+                        observer();
+                    }
+                }, false);
+            }
+            return FileDownload;
+        }());
+        var Cache;
+        (function (Cache) {
+            function loadFileUploadsCache() {
+                var result = {};
+                var selector = ".file-control.upload > input[id]";
+                var fileUploadInputsElements = document.querySelectorAll(selector);
+                for (var i = 0; i < fileUploadInputsElements.length; i++) {
+                    var container = fileUploadInputsElements[i].parentElement;
+                    var id = fileUploadInputsElements[i].id;
+                    result[id] = new FileUpload(container);
+                }
+                return result;
+            }
+            function loadFileDownloadsCache() {
+                var result = {};
+                var selector = ".file-control.download > input[id]";
+                var fileDownloadInputsElements = document.querySelectorAll(selector);
+                for (var i = 0; i < fileDownloadInputsElements.length; i++) {
+                    var container = fileDownloadInputsElements[i].parentElement;
+                    var id = fileDownloadInputsElements[i].id;
+                    result[id] = new FileDownload(container);
+                }
+                return result;
+            }
+            var fileUploadsCache;
+            var fileDownloadsCache;
+            function getFileUploadById(id) {
+                Cache.load();
+                return fileUploadsCache[id] || null;
+            }
+            Cache.getFileUploadById = getFileUploadById;
+            function getFileDownloadById(id) {
+                Cache.load();
+                return fileDownloadsCache[id] || null;
+            }
+            Cache.getFileDownloadById = getFileDownloadById;
+            function load() {
+                if (typeof fileUploadsCache === "undefined") {
+                    fileUploadsCache = loadFileUploadsCache();
+                }
+                if (typeof fileDownloadsCache === "undefined") {
+                    fileDownloadsCache = loadFileDownloadsCache();
+                }
+            }
+            Cache.load = load;
+        })(Cache || (Cache = {}));
+        Page.Helpers.Events.callAfterDOMLoaded(function () {
+            Cache.load();
         });
         /**
          * @return {boolean} Whether or not the observer was added
          */
         function addDownloadObserver(id, observer) {
-            var input = getDownloadInputById(id);
-            if (input) {
-                input.addEventListener("click", function () {
-                    event.stopPropagation();
-                    observer();
-                }, false);
+            var fileDownload = Cache.getFileDownloadById(id);
+            if (fileDownload) {
+                fileDownload.observers.push(observer);
                 return true;
             }
             return false;
@@ -880,23 +933,22 @@ var Page;
          * @return {boolean} Whether or not the observer was added
          */
         function addUploadObserver(uploadId, observer) {
-            var input = getUploadInputById(uploadId);
-            if (input) {
-                input.addEventListener("change", function () {
-                    event.stopPropagation();
-                    if (input.files.length === 1) {
-                        observer(input.files);
-                    }
-                }, false);
+            var fileUpload = Cache.getFileUploadById(uploadId);
+            if (fileUpload) {
+                fileUpload.observers.push(observer);
                 return true;
             }
             return false;
         }
         FileControl.addUploadObserver = addUploadObserver;
+        function clearFileUpload(id) {
+            var fileUpload = Cache.getFileUploadById(id);
+            fileUpload.clear();
+        }
+        FileControl.clearFileUpload = clearFileUpload;
     })(FileControl = Page.FileControl || (Page.FileControl = {}));
 })(Page || (Page = {}));
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 var Page;
 (function (Page) {
     var Button;
@@ -967,7 +1019,6 @@ var Page;
 })(Page || (Page = {}));
 
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 var Page;
 (function (Page) {
     var Checkbox;
@@ -1105,12 +1156,8 @@ var Page;
     })(Checkbox = Page.Checkbox || (Page.Checkbox = {}));
 })(Page || (Page = {}));
 
-var Page;
-(function (Page) {
-})(Page || (Page = {}));
 
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 var Page;
 (function (Page) {
     var Canvas;
@@ -1227,11 +1274,11 @@ var Page;
         }
         var Mouse;
         (function (Mouse) {
-            var mousePosition = [];
+            var mousePosition = [0, 0];
             var clientMousePosition = [0, 0];
             var isMouseDownInternal = false;
             function getMousePosition() {
-                return mousePosition.slice();
+                return [mousePosition[0], mousePosition[1]];
             }
             Mouse.getMousePosition = getMousePosition;
             function setMousePosition(x, y) {
@@ -1328,9 +1375,7 @@ var Page;
                 });
             }
         })(Mouse || (Mouse = {}));
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        var Touch;
-        (function (Touch) {
+        (function Touch() {
             var currentTouches = [];
             var currentDistance = 0; // for pinching management
             function computeDistance(firstTouch, secondTouch) {
@@ -1423,7 +1468,7 @@ var Page;
                 window.addEventListener("touchend", handleTouchEnd);
                 window.addEventListener("touchmove", handleTouchMove, { passive: false });
             }
-        })(Touch || (Touch = {}));
+        })();
         var Indicators;
         (function (Indicators) {
             var indicatorSpansCache = {};
