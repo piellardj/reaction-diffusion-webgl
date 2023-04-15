@@ -11,6 +11,10 @@ const data = {
         "This is a GPU implementation of the Gray Scott model. It exhibits natural-looking patterns, reminiscent of corals or some animal coats. Use the left mouse button to interact with the simulation.",
     ],
     githubProjectName: "reaction-diffusion-webgl",
+    readme: {
+        filepath: path.join(__dirname, "..", "README.md"),
+        branchName: "main"
+    },
     additionalLinks: [],
     styleFiles: [
         "css/main.css"

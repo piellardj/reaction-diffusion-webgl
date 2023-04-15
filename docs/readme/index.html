@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="description" content="Readme page of my project 'Reaction-diffusion'. Reaction-diffusion on GPU in WebGL" />
+    <title>Reaction-diffusion - Explanations</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="icon" type="image/png" href="favicon-16x16.png" sizes="16x16">
+    <link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96">
+    <link rel="stylesheet" type="text/css" href="css/page.css?v=2023-04-15T19%3A50%3A45.176Z">
+  </head>
+
+  <body>
+    <header>
+      <a class="logo logo-animate-fill" href="https://piellardj.github.io/reaction-diffusion-webgl/" id="seep-live-button" title="Live project" aria-label="Live project">
+        <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+          <g stroke-width="2">
+            <path fill="none" stroke-linejoin="round" d="M24,20v24L46,32z" />
+        </svg>
+      </a>
+    </header>
+    <main>
+      <div class="contents">
+        <h1 id="reactiondiffusion">reaction-diffusion</h1>
+        <p>Reaction-diffusion is a model used to simulate the interaction of two chemical substances 'A' and 'B'. 'A' transforms into 'B' when it is in contact with it. Additionally, a little 'A' is continuously injected, and a fraction of 'B' slowly destroys itself.</p>
+        <p>This is a GPU implementation of the Gray Scott model. It exhibits natural-looking patterns, reminiscent of corals or some animal coats. Use the left mouse button to interact with the simulation.</p>
+        <p>See it live <a href="https://piellardj.github.io/reaction-diffusion-webgl/?page%3Atabs%3Amap-tabs-id=uniform&page%3Aselect%3Apresets-fixed-select-id=0">here</a>.</p>
+        <h2 id="preview">Preview</h2>
+        <p><img src="https://github.com/piellardj/reaction-diffusion-webgl/raw/main/src/readme/cat.png" alt="Black and white mode: cat" /></p>
+        <p><img src="https://github.com/piellardj/reaction-diffusion-webgl/raw/main/src/readme/joconde.png" alt="Color mode: joconde" /></p>
+        <p><img src="https://github.com/piellardj/reaction-diffusion-webgl/raw/main/src/readme/preview_3.png" alt="Illustration 1" /></p>
+        <p><img src="https://github.com/piellardj/reaction-diffusion-webgl/raw/main/src/readme/uniform_1.png" alt="Illustration 2" /></p>
+        <p><img src="https://github.com/piellardj/reaction-diffusion-webgl/raw/main/src/readme/preview_2.png" alt="Illustration 3" /></p>
+        <p>
+        <div style="text-align:center">
+          <video controls muted>
+            <source src="https://user-images.githubusercontent.com/22922087/119693778-e5600800-be4c-11eb-978f-7387cfce0405.mp4" type="video/mp4">
+          </video>
+        </div>
+        </p>
+        <h2 id="reactiondiffusion-1">Reaction-diffusion</h2>
+        <h3 id="model">Model</h3>
+        <p>Reaction-diffusion can be seen as a description of a simple chemical reaction between two substances 'A' and 'B'. I like to imagine they are liquid.</p>
+        <p>The rules are quite simple:</p>
+        <ul>
+          <li>a molecule of 'A' turns into 'B' if it meets two molecules of 'B': <code>A + 2B ⟶ 3B</code></li>
+          <li>more 'A' is continuously added (at a uniform feeding rate)</li>
+          <li>a fraction of 'B' continuously disappears (at a uniform killing rate)</li>
+          <li>'A' and 'B' slowly diffuse at a constant rate.</li>
+        </ul>
+        <p>This system can easily be discretized by turning it into a cellular automaton:</p>
+        <ul>
+          <li>space becomes an Eulerian grid where each cell has 2 scalars for the local concentration of 'A' and 'B'.<ul>
+              <li>for each cell, the amount of 'A' that turns into 'B' is computed as <code>A x B x B</code>.</li>
+              <li>the feeding and killing rates can be uniform or vary from cell to cell.</li>
+              <li>the diffusion is a simple blur with a 3x3 kernel.</li>
+            </ul>
+          </li>
+          <li>in each iteration, the new state of the grid is computed from the previous one all at once.</li>
+        </ul>
+        <h3 id="implementation">Implementation</h3>
+        <p>The values for A and B are stored in a texture. Unfortunately, the default precision of 8 bits per channel is not enough for this simulation. A <code>RG16F</code> texture format would be ideal, however it is only available in WebGL 2. This is why I have to store each 16 bits value on 2x8 bits channels of a RGBA texture: the value for A is stored in red and green, and the value for B in blue and alpha.</p>
+        <p>This also prevents me from using a little trick to make the blurring part cheaper. The bluring is currently performed by applying a 3x3 kernel, which means 9 texture fetches. A common technique to make that faster is to take advantage of the linear interpolation performed by the GPU, in order to go down to only 5 fetches. However because the values are stored in 2 channels, this leads to numerical imprecisions, which are fine for displaying but unsuited for the computing part. </p>
+        <p>Another optimisation for the tricolor mode would be to use the <code>WEBGL_draw_buffers</code> extension to allow the fragment shader to write to all 3 textures (red, green, blue) at once. This would reduce by 3 the number of uniforms binding, of calls to <code>gl.draw</code>, and of texture fetches in the shader.</p>
+        <h2 id="imagemode">Image mode</h2>
+        <p>In image mode, the feed and kill rates are not uniform, they vary locally based on the source image. They are interpolated between 2 presets, for white and black:
+          <img src="https://github.com/piellardj/reaction-diffusion-webgl/raw/main/src/readme/interpolation.png" alt="Illustration of interpolation values" />
+        </p>
+        <h3 id="results">Results</h3>
+        <p>Using reaction-diffusion to approximate images is computationally expensive, but it gives results that are visually interesting. The output is quite trippy, but after blurring it a bit, you can see that is is pretty good. In this example, the hue is a bit off, but notice how many fine details are preserved.</p>
+        <div style="text-align:center">
+          <img alt="Bird in color mode" src="https://github.com/piellardj/reaction-diffusion-webgl/raw/main/src/readme/joconde-comparison.jpg" />
+          <p>
+            <i>Left: original image. Middle: approximation with reaction-diffusion. Right: blurred version of the middle image.</i>
+          </p>
+        </div>
+        <h3 id="blackandwhite">Black and white</h3>
+        <p>For the black and white mode, the local brightness is sampled. I used the perceived brightness, computed as: <code>(0.21 × red) + (0.72 × green) + (0.07 × blue)</code>.</p>
+        <h3 id="color">Color</h3>
+        <p>For the color mode, there are 3 simulations that run in parallel, one for each channel. They are combined at drawing time using additive compositing.</p>
+        <div style="text-align:center">
+          <img alt="Bird in color mode" src="https://github.com/piellardj/reaction-diffusion-webgl/raw/main/src/readme/bird.png" />
+          <p>
+            <i>Here is a bird in color mode.</i>
+          </p>
+        </div>
+        <div style="text-align:center">
+          <img alt="Bird decomposition" src="https://github.com/piellardj/reaction-diffusion-webgl/raw/main/src/readme/bird-decomposition.png" />
+          <p>
+            <i>Here the decomposition of the bird image.</i>
+          </p>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="badge-shelf">
+        <a class="badge" href="mailto:jeremie.piellard@gmail.com" title="Email">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" viewBox="0 0 512 512">
+            <path d="M512 85V448H0V85l256 224L512 85zM488 64H24L256 267 488 64z" />
+          </svg>
+        </a>
+
+        <a class="badge" href="https://github.com/piellardj" title="GitHub">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" viewBox="0 0 1024 1024">
+            <path d="M512 0C229 0 0 229 0 512c0 226 147 418 350 486 26 5 35-11 35-25 0-12 0-53-1-95C242 909 212 818 212 818c-23-59-57-75-57-75-47-32 4-31 4-31 51 4 78 53 78 53 46 78 120 56 149 43 5-33 18-56 33-68C305 725 185 682 185 485c0-56 20-102 53-137-5-13-23-65 5-136 0 0 43-14 141 53 41-11 85-17 128-17 44 0 87 6 128 17 98-66 141-52 141-52 28 71 10 123 5 136 33 36 53 81 53 137 0 197-120 240-234 253 18 16 35 47 35 95 0 68-1 124-1 141 0 14 9 30 35 25C877 930 1024 738 1024 512 1024 229 795 0 512 0z" />
+          </svg>
+        </a>
+
+        <a class="badge" href="https://www.linkedin.com/in/jeremie-piellard/" title="LinkedIn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" viewBox="0 0 512 512">
+            <path d="M30 177l93-1v304l-93 1v-304z" />
+            <path d="M200 177l89-1v39l0 11c26-26 53-45 97-45 51 0 100 21 100 91v208l-90 1v-159c0-35-9-58-51-58-37 0-52 7-52 55v160l-92 1v-304z" />
+            <path d="M128 81c0 28-23 51-51 51s-51-23-51-51c0-28 23-51 51-51 28 0 51 23 51 51z" />
+          </svg>
+        </a>
+      </div>
+    </footer>
+  </body>
+
+</html>
