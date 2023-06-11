@@ -5,6 +5,8 @@ This is a GPU implementation of the Gray Scott model. It exhibits natural-lookin
 
 See it live [here](https://piellardj.github.io/reaction-diffusion-webgl/?page%3Atabs%3Amap-tabs-id=uniform&page%3Aselect%3Apresets-fixed-select-id=0).
 
+[![Donate](https://raw.githubusercontent.com/piellardj/piellardj.github.io/master/images/readme/donate-paypal.svg)](https://www.paypal.com/donate/?hosted_button_id=AF7H7GEJTL95E)
+
 ## Preview
 ![Black and white mode: cat](src/readme/cat.png)
 
